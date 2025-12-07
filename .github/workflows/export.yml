@@ -44,7 +44,6 @@ jobs:
 
           # Check if there are changes to commit
           if ! git diff --quiet --staged; then
-            git pull --rebase origin ${{ github.ref_name }}
             git commit -m "Daily export - $(date -u +"%Y-%m-%d")"
 
             # Retry push up to 3 times in case of conflicts
@@ -55,6 +54,7 @@ jobs:
               else
                 echo "Push failed, attempt $i of 3"
                 if [ $i -lt 3 ]; then
+                  echo "Pulling latest changes and retrying..."
                   git pull --rebase origin ${{ github.ref_name }}
                   sleep 2
                 else
@@ -100,7 +100,6 @@ jobs:
 
           # Check if there are changes to commit
           if ! git diff --quiet --staged; then
-            git pull --rebase origin ${{ github.ref_name }}
             git commit -m "Weekly export - $(date -u +"%Y-%m-%d")"
 
             # Retry push up to 3 times in case of conflicts
@@ -111,6 +110,7 @@ jobs:
               else
                 echo "Push failed, attempt $i of 3"
                 if [ $i -lt 3 ]; then
+                  echo "Pulling latest changes and retrying..."
                   git pull --rebase origin ${{ github.ref_name }}
                   sleep 2
                 else
