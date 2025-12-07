@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Statistics Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 30px 40px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .controls label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .controls select {
+            padding: 10px 16px;
+            font-size: 16px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .controls select:hover {
+            border-color: #667eea;
+        }
+
+        .controls select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            opacity: 0.9;
+            margin-bottom: 12px;
+        }
+
+        .stat-value {
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .combo-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .combo-item {
+            background: #f8f9fa;
+            padding: 24px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .combo-item:hover {
+            background: white;
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .combo-rank {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            width: 50px;
+        }
+
+        .combo-info {
+            flex: 1;
+        }
+
+        .combo-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 4px;
+        }
+
+        .combo-details {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .combo-stats {
+            text-align: right;
+        }
+
+        .combo-count {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+            line-height: 1;
+        }
+
+        .combo-percentage {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #6c757d;
+            font-size: 18px;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .combo-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 16px;
+            }
+
+            .combo-rank {
+                width: auto;
+            }
+
+            .combo-stats {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Game Statistics Dashboard</h1>
+            <p>Real-time analysis of ongoing games</p>
+        </div>
+
+        <div class="controls">
+            <label for="typeSelect">View:</label>
+            <select id="typeSelect">
+                <option value="daily">Daily Summary</option>
+                <option value="weekly">Weekly Summary</option>
+            </select>
+
+            <label for="dateSelect">Date:</label>
+            <select id="dateSelect">
+                <option value="">Loading...</option>
+            </select>
+        </div>
+
+        <div id="content" class="content">
+            <div class="loading">Loading statistics...</div>
+        </div>
+    </div>
+
+    <script>
+        let availableDates = {
+            daily: [],
+            weekly: []
+        };
+        let currentType = 'daily';
+
+        async function loadAvailableDates() {
+            try {
+                // Scan for available daily files
+                const today = new Date();
+                for (let i = 0; i < 90; i++) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toISOString().split('T')[0];
+
+                    try {
+                        const response = await fetch(`daily_${dateStr}.json`);
+                        if (response.ok) {
+                            availableDates.daily.push(dateStr);
+                        }
+                    } catch (e) {
+                        // File doesn't exist, continue
+                    }
+                }
+
+                // Scan for weekly files
+                for (let i = 0; i < 12; i++) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - (i * 7));
+                    const monday = new Date(date);
+                    const day = monday.getDay();
+                    const diff = monday.getDate() - day + (day === 0 ? -6 : 1);
+                    monday.setDate(diff);
+                    const dateStr = monday.toISOString().split('T')[0];
+
+                    try {
+                        const response = await fetch(`weekly_${dateStr}.json`);
+                        if (response.ok) {
+                            availableDates.weekly.push(dateStr);
+                        }
+                    } catch (e) {
+                        // File doesn't exist, continue
+                    }
+                }
+
+                updateDateSelect();
+
+                if (availableDates[currentType].length > 0) {
+                    loadData(currentType, availableDates[currentType][0]);
+                }
+            } catch (error) {
+                showError('Failed to load available dates: ' + error.message);
+            }
+        }
+
+        function updateDateSelect() {
+            const select = document.getElementById('dateSelect');
+            select.innerHTML = '';
+
+            const dates = availableDates[currentType];
+            if (dates.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No data available';
+                select.appendChild(option);
+                return;
+            }
+
+            dates.forEach(date => {
+                const option = document.createElement('option');
+                option.value = date;
+                option.textContent = date;
+                select.appendChild(option);
+            });
+        }
+
+        async function loadData(type, date) {
+            try {
+                const filename = `${type}_${date}.json`;
+                const response = await fetch(filename);
+
+                if (!response.ok) {
+                    throw new Error(`Failed to load ${filename}`);
+                }
+
+                const data = await response.json();
+                renderStats(data, type);
+            } catch (error) {
+                showError('Failed to load data: ' + error.message);
+            }
+        }
+
+        function renderStats(data, type) {
+            const content = document.getElementById('content');
+
+            const dateLabel = type === 'daily' ? data.date : `${data.weekStart} to ${data.weekEnd}`;
+            const periodLabel = type === 'daily' ? 'Day' : 'Week';
+
+            const html = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Games</div>
+                        <div class="stat-value">${data.totalGames.toLocaleString()}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Unique Combinations</div>
+                        <div class="stat-value">${Object.keys(data.combinations || {}).length}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">${periodLabel}</div>
+                        <div class="stat-value" style="font-size: 20px;">${dateLabel}</div>
+                    </div>
+                </div>
+
+                <h2 class="section-title">Top Leader/Base Combinations</h2>
+                <div class="combo-list">
+                    ${(data.topCombinations || []).map((combo, i) => `
+                        <div class="combo-item">
+                            <div class="combo-rank">#${i + 1}</div>
+                            <div class="combo-info">
+                                <div class="combo-name">${combo.combination.leader} / ${combo.combination.base}</div>
+                                <div class="combo-details">Most popular combination</div>
+                            </div>
+                            <div class="combo-stats">
+                                <div class="combo-count">${combo.count.toLocaleString()}</div>
+                                <div class="combo-percentage">${combo.percentage.toFixed(1)}% of total</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            content.innerHTML = html;
+        }
+
+        function showError(message) {
+            const content = document.getElementById('content');
+            content.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        document.getElementById('typeSelect').addEventListener('change', (e) => {
+            currentType = e.target.value;
+            updateDateSelect();
+            if (availableDates[currentType].length > 0) {
+                document.getElementById('dateSelect').value = availableDates[currentType][0];
+                loadData(currentType, availableDates[currentType][0]);
+            }
+        });
+
+        document.getElementById('dateSelect').addEventListener('change', (e) => {
+            loadData(currentType, e.target.value);
+        });
+
+        loadAvailableDates();
+    </script>
+</body>
+</html>

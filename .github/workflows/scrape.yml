@@ -1,0 +1,100 @@
+name: Export and Deploy to GitHub Pages
+
+on:
+  schedule:
+    # Run daily at 00:05 UTC
+    - cron: '5 0 * * *'
+    # Run weekly on Mondays at 00:10 UTC
+    - cron: '10 0 * * 1'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  export-daily:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '5 0 * * *' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Export daily summary
+        env:
+          MODE: export-daily
+        run: go run .
+
+      - name: Commit exports
+        run: |
+          git config user.name "Game Scraper Bot"
+          git config user.email "bot@github-actions"
+          git add exports/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Daily export - $(date -u +"%Y-%m-%d")" && git push)
+
+  export-weekly:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '10 0 * * 1' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Export weekly summary
+        env:
+          MODE: export-weekly
+        run: go run .
+
+      - name: Commit exports
+        run: |
+          git config user.name "Game Scraper Bot"
+          git config user.email "bot@github-actions"
+          git add exports/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Weekly export - $(date -u +"%Y-%m-%d")" && git push)
+
+  deploy-pages:
+    needs: [export-daily]
+    if: always() && (needs.export-daily.result == 'success' || needs.export-daily.result == 'skipped')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Create Pages directory
+        run: |
+          mkdir -p _site
+          cp -r exports/* _site/ 2>/dev/null || true
+          cp docs/index.html _site/index.html
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
