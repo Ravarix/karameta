@@ -14,7 +14,8 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1419 100%);
+            background-attachment: fixed;
             min-height: 100vh;
             padding: 20px;
         }
@@ -22,34 +23,51 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            background: white;
+            background: #1a1f2e;
             border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(212, 175, 55, 0.1);
             overflow: hidden;
+            border: 1px solid rgba(212, 175, 55, 0.2);
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f3a 100%);
+            color: #d4af37;
             padding: 40px;
             text-align: center;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #d4af37, transparent);
         }
 
         .header h1 {
             font-size: 36px;
             font-weight: 700;
             margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+            letter-spacing: 2px;
         }
 
         .header p {
             font-size: 18px;
-            opacity: 0.9;
+            opacity: 0.8;
+            color: #a8b2d1;
         }
 
         .controls {
             padding: 30px 40px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
+            background: #0f1419;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
             display: flex;
             gap: 20px;
             align-items: center;
@@ -58,31 +76,37 @@
 
         .controls label {
             font-weight: 600;
-            color: #495057;
+            color: #d4af37;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
         }
 
         .controls select {
             padding: 10px 16px;
             font-size: 16px;
-            border: 2px solid #dee2e6;
+            border: 2px solid rgba(212, 175, 55, 0.3);
             border-radius: 8px;
-            background: white;
+            background: #1a1f2e;
+            color: #a8b2d1;
             cursor: pointer;
             transition: all 0.3s;
         }
 
         .controls select:hover {
-            border-color: #667eea;
+            border-color: #d4af37;
+            background: #252a3d;
         }
 
         .controls select:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #d4af37;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
         }
 
         .content {
             padding: 40px;
+            background: #1a1f2e;
         }
 
         .stats-grid {
@@ -93,40 +117,71 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: linear-gradient(135deg, #1e2a47 0%, #2a3550 100%);
+            color: #e8eaf6;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #4a9eff, #d4af37, #ff4757);
+        }
+
+        .stat-card:nth-child(1)::before {
+            background: #4a9eff;
+        }
+
+        .stat-card:nth-child(2)::before {
+            background: #ff4757;
+        }
+
+        .stat-card:nth-child(3)::before {
+            background: #2ed573;
         }
 
         .stat-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
+            border-color: #d4af37;
         }
 
         .stat-label {
             font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            opacity: 0.9;
+            opacity: 0.7;
             margin-bottom: 12px;
+            color: #d4af37;
         }
 
         .stat-value {
             font-size: 48px;
             font-weight: 700;
             line-height: 1;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
         }
 
         .section-title {
             font-size: 28px;
             font-weight: 700;
-            color: #212529;
+            color: #d4af37;
             margin-bottom: 24px;
             padding-bottom: 12px;
-            border-bottom: 3px solid #667eea;
+            border-bottom: 3px solid rgba(212, 175, 55, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .combo-list {
@@ -135,27 +190,29 @@
         }
 
         .combo-item {
-            background: #f8f9fa;
+            background: #0f1419;
             padding: 24px;
             border-radius: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             transition: all 0.3s;
-            border: 2px solid transparent;
+            border: 2px solid rgba(212, 175, 55, 0.2);
         }
 
         .combo-item:hover {
-            background: white;
-            border-color: #667eea;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background: #1a1f2e;
+            border-color: #d4af37;
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+            transform: translateX(4px);
         }
 
         .combo-rank {
             font-size: 24px;
             font-weight: 700;
-            color: #667eea;
+            color: #d4af37;
             width: 50px;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
         }
 
         .combo-info {
@@ -165,13 +222,13 @@
         .combo-name {
             font-size: 18px;
             font-weight: 600;
-            color: #212529;
+            color: #e8eaf6;
             margin-bottom: 4px;
         }
 
         .combo-details {
             font-size: 14px;
-            color: #6c757d;
+            color: #7c8db0;
         }
 
         .combo-stats {
@@ -181,37 +238,39 @@
         .combo-count {
             font-size: 32px;
             font-weight: 700;
-            color: #667eea;
+            color: #d4af37;
             line-height: 1;
         }
 
         .combo-percentage {
             font-size: 14px;
-            color: #6c757d;
+            color: #7c8db0;
             margin-top: 4px;
         }
 
         .loading {
             text-align: center;
             padding: 60px;
-            color: #6c757d;
+            color: #7c8db0;
             font-size: 18px;
         }
 
         .error {
-            background: #f8d7da;
-            color: #721c24;
+            background: rgba(255, 71, 87, 0.1);
+            color: #ff4757;
             padding: 20px;
             border-radius: 8px;
             margin: 20px 0;
+            border: 1px solid rgba(255, 71, 87, 0.3);
         }
 
         .chart-container {
-            background: white;
+            background: #0f1419;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             margin-bottom: 40px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
         }
 
         .chart-wrapper {
@@ -456,14 +515,13 @@
                 values.push(othersCount);
             }
 
-            // Generate vibrant colors for the chart
+            // Star Wars themed colors: blues (heroes), reds (villains), greens (bounty hunters), purples (force), golds (neutral)
             const colors = [
-                '#667eea', '#764ba2', '#f093fb', '#4facfe',
-                '#43e97b', '#fa7c91', '#ffd89b', '#19d4e3',
-                '#a8edea', '#fed6e3', '#c3cfe2', '#ff6b6b',
-                '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7',
-                '#fdcb6e', '#74b9ff', '#a29bfe', '#fd79a8',
-                '#dfe6e9',
+                '#4a9eff', '#ff4757', '#2ed573', '#d4af37', '#8b5cf6',
+                '#3742fa', '#ff6348', '#26de81', '#ffa502', '#a55eea',
+                '#4b7bec', '#fc5c65', '#20bf6b', '#fd9644', '#8854d0',
+                '#5f27cd', '#c23616', '#0fb9b1', '#f79f1f', '#6c5ce7',
+                '#0984e3', '#d63031', '#00b894', '#fdcb6e', '#a29bfe'
             ];
 
             chartInstance = new Chart(ctx, {
