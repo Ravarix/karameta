@@ -511,6 +511,15 @@ func main() {
 		}
 		log.Println("Scrape completed successfully")
 
+	case "export-current":
+		log.Println("Mode: Current Day Export")
+		today := time.Now()
+		summary := scraper.stats.GetDailySummary(today)
+		if err := scraper.exportSummary(summary, "current.json"); err != nil {
+			log.Fatalf("Current export failed: %v", err)
+		}
+		log.Printf("Current day export completed for %s", today.Format("2006-01-02"))
+
 	case "export-daily":
 		log.Println("Mode: Daily Export")
 		yesterday := time.Now().AddDate(0, 0, -1)
@@ -529,6 +538,6 @@ func main() {
 		log.Printf("Weekly export completed for week starting %s", weekStart.Format("2006-01-02"))
 
 	default:
-		log.Fatalf("Unknown mode: %s. Use 'scrape', 'export-daily', or 'export-weekly'", config.Mode)
+		log.Fatalf("Unknown mode: %s. Use 'scrape', 'export-current', 'export-daily', or 'export-weekly'", config.Mode)
 	}
 }

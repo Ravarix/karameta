@@ -236,6 +236,7 @@
         <div class="controls">
             <label for="typeSelect">View:</label>
             <select id="typeSelect">
+                <option value="current">Today (Live)</option>
                 <option value="daily">Daily Summary</option>
                 <option value="weekly">Weekly Summary</option>
             </select>
@@ -253,10 +254,11 @@
 
     <script>
         let availableDates = {
+            current: ['live'],
             daily: [],
             weekly: []
         };
-        let currentType = 'daily';
+        let currentType = 'current';
 
         async function loadAvailableDates() {
             try {
@@ -298,19 +300,28 @@
                 }
 
                 updateDateSelect();
-
-                if (availableDates[currentType].length > 0) {
-                    loadData(currentType, availableDates[currentType][0]);
-                }
             } catch (error) {
                 showError('Failed to load available dates: ' + error.message);
             }
+
+            // Always try to load current view by default
+            loadData('current', 'live');
         }
 
         function updateDateSelect() {
             const select = document.getElementById('dateSelect');
             select.innerHTML = '';
 
+            if (currentType === 'current') {
+                const option = document.createElement('option');
+                option.value = 'live';
+                option.textContent = 'Live (updates every 5 min)';
+                select.appendChild(option);
+                select.disabled = true;
+                return;
+            }
+
+            select.disabled = false;
             const dates = availableDates[currentType];
             if (dates.length === 0) {
                 const option = document.createElement('option');
@@ -328,10 +339,28 @@
             });
         }
 
+        let autoRefreshInterval = null;
+
         async function loadData(type, date) {
             try {
-                const filename = `data/${type}_${date}.json`;
-                const response = await fetch(filename);
+                // Clear any existing auto-refresh
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+
+                let filename;
+                if (type === 'current') {
+                    filename = 'data/current.json';
+                    // Auto-refresh every 30 seconds for current view
+                    autoRefreshInterval = setInterval(() => {
+                        loadData('current', 'live');
+                    }, 30000);
+                } else {
+                    filename = `data/${type}_${date}.json`;
+                }
+
+                const response = await fetch(filename + '?t=' + Date.now()); // Cache busting
 
                 if (!response.ok) {
                     throw new Error(`Failed to load ${filename}`);
@@ -347,8 +376,17 @@
         function renderStats(data, type) {
             const content = document.getElementById('content');
 
-            const dateLabel = type === 'daily' ? data.date : `${data.weekStart} to ${data.weekEnd}`;
-            const periodLabel = type === 'daily' ? 'Day' : 'Week';
+            let dateLabel, periodLabel;
+            if (type === 'current') {
+                dateLabel = data.date + ' 🔴 LIVE';
+                periodLabel = 'Today';
+            } else if (type === 'daily') {
+                dateLabel = data.date;
+                periodLabel = 'Day';
+            } else {
+                dateLabel = `${data.weekStart} to ${data.weekEnd}`;
+                periodLabel = 'Week';
+            }
 
             const html = `
                 <div class="stats-grid">
