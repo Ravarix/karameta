@@ -278,26 +278,17 @@
 
         async function loadAvailableDates() {
             try {
-                // Scan for available daily files
-                const today = new Date();
-                for (let i = 0; i < 90; i++) {
-                    const date = new Date(today);
-                    date.setDate(date.getDate() - i);
-                    const dateStr = date.toISOString().split('T')[0];
-
-                    try {
-                        const response = await fetch(`daily_${dateStr}.json`);
-                        if (response.ok) {
-                            availableDates.daily.push(dateStr);
-                        }
-                    } catch (e) {
-                        // File doesn't exist, continue
-                    }
+                const response = await fetch('data/index.json?t=' + Date.now());
+                if (response.ok) {
+                    const index = await response.json();
+                    availableDates.daily = index.daily || [];
+                    updateDateSelect();
+                } else {
+                    console.warn('Failed to load index.json, no historical data available');
                 }
-
-                updateDateSelect();
             } catch (error) {
-                showError('Failed to load available dates: ' + error.message);
+                console.warn('Failed to load available dates: ' + error.message);
+                // Not a critical error, just means no historical data available
             }
 
             // Always try to load current view by default
@@ -529,15 +520,6 @@
             } else if (availableDates[currentType].length > 0) {
                 document.getElementById('dateSelect').value = availableDates[currentType][0];
                 loadData(currentType, availableDates[currentType][0]);
-            } else if (!indexLoaded) {
-                // Index hasn't loaded yet, wait a bit
-                showError('Loading historical data...');
-                setTimeout(() => {
-                    if (availableDates[currentType].length > 0) {
-                        document.getElementById('dateSelect').value = availableDates[currentType][0];
-                        loadData(currentType, availableDates[currentType][0]);
-                    }
-                }, 1000);
             }
         });
 
