@@ -35,6 +35,7 @@ var baseMap = map[string]string{
 	"SEC_024": "Red_30",
 
 	"SOR_029": "Yellow_30",
+	"SOR_030": "Yellow_30",
 	"SHD_025": "Yellow_30",
 	"SHD_026": "Yellow_30",
 	"TWI_029": "Yellow_30",
