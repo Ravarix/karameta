@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Statistics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -205,7 +206,24 @@
             margin: 20px 0;
         }
 
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin-top: 20px;
+        }
+
         @media (max-width: 768px) {
+            .chart-wrapper {
+                height: 300px;
+            }
             .header h1 {
                 font-size: 28px;
             }
@@ -373,6 +391,8 @@
             }
         }
 
+        let chartInstance = null;
+
         function renderStats(data, type) {
             const content = document.getElementById('content');
 
@@ -404,6 +424,13 @@
                     </div>
                 </div>
 
+                <div class="chart-container">
+                    <h2 class="section-title">Distribution of Top Combinations</h2>
+                    <div class="chart-wrapper">
+                        <canvas id="comboChart"></canvas>
+                    </div>
+                </div>
+
                 <h2 class="section-title">Top Leader/Base Combinations</h2>
                 <div class="combo-list">
                     ${(data.topCombinations || []).map((combo, i) => `
@@ -423,6 +450,82 @@
             `;
 
             content.innerHTML = html;
+
+            // Render the pie chart
+            renderChart(data);
+        }
+
+        function renderChart(data) {
+            // Destroy existing chart if it exists
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const canvas = document.getElementById('comboChart');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+
+            // Get top combinations data
+            const topCombos = data.topCombinations || [];
+            const topCount = Math.min(10, topCombos.length); // Show top 10
+
+            const labels = topCombos.slice(0, topCount).map(combo => combo.combo);
+            const values = topCombos.slice(0, topCount).map(combo => combo.count);
+
+            // Calculate "Others" if there are more combinations
+            if (topCombos.length > topCount) {
+                const othersCount = topCombos.slice(topCount).reduce((sum, combo) => sum + combo.count, 0);
+                labels.push('Others');
+                values.push(othersCount);
+            }
+
+            // Generate vibrant colors for the chart
+            const colors = [
+                '#667eea', '#764ba2', '#f093fb', '#4facfe',
+                '#43e97b', '#fa7c91', '#ffd89b', '#19d4e3',
+                '#a8edea', '#fed6e3', '#c3cfe2'
+            ];
+
+            chartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colors,
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: {
+                                    size: 12
+                                },
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         function showError(message) {
