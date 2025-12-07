@@ -330,7 +330,7 @@
 
         async function loadData(type, date) {
             try {
-                const filename = `${type}_${date}.json`;
+                const filename = `data/${type}_${date}.json`;
                 const response = await fetch(filename);
 
                 if (!response.ok) {

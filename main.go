@@ -15,7 +15,7 @@ const (
 	DefaultAPIURL        = "https://api.karabast.net/api/ongoing-games"
 	DefaultBloomFilePath = "./bloom_filter.dat"
 	DefaultStatsFilePath = "./stats.json"
-	DefaultExportDir     = "./exports"
+	DefaultExportDir     = "./docs/data"
 )
 
 type Leader struct {
