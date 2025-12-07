@@ -476,7 +476,7 @@
             // Sort by count descending
             comboArray.sort((a, b) => b.count - a.count);
 
-            const topCount = Math.min(10, comboArray.length); // Show top 10
+            const topCount = Math.min(20, comboArray.length); // Show top 20
 
             // Get labels and values for top combinations
             const labels = comboArray.slice(0, topCount).map(combo => combo.name);
@@ -494,7 +494,11 @@
             const colors = [
                 '#667eea', '#764ba2', '#f093fb', '#4facfe',
                 '#43e97b', '#fa7c91', '#ffd89b', '#19d4e3',
-                '#a8edea', '#fed6e3', '#c3cfe2'
+                '#a8edea', '#fed6e3', '#c3cfe2', '#ff6b6b',
+                '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7',
+                '#dfe6e9', '#74b9ff', '#a29bfe', '#fd79a8',
+                '#fdcb6e', '#6c5ce7', '#00b894', '#e17055',
+                '#0984e3'
             ];
 
             chartInstance = new Chart(ctx, {
