@@ -256,7 +256,6 @@
             <select id="typeSelect">
                 <option value="current">Today (Live)</option>
                 <option value="daily">Daily Summary</option>
-                <option value="weekly">Weekly Summary</option>
             </select>
 
             <label for="dateSelect">Date:</label>
@@ -273,8 +272,7 @@
     <script>
         let availableDates = {
             current: ['live'],
-            daily: [],
-            weekly: []
+            daily: []
         };
         let currentType = 'current';
 
@@ -291,26 +289,6 @@
                         const response = await fetch(`daily_${dateStr}.json`);
                         if (response.ok) {
                             availableDates.daily.push(dateStr);
-                        }
-                    } catch (e) {
-                        // File doesn't exist, continue
-                    }
-                }
-
-                // Scan for weekly files
-                for (let i = 0; i < 12; i++) {
-                    const date = new Date(today);
-                    date.setDate(date.getDate() - (i * 7));
-                    const monday = new Date(date);
-                    const day = monday.getDay();
-                    const diff = monday.getDate() - day + (day === 0 ? -6 : 1);
-                    monday.setDate(diff);
-                    const dateStr = monday.toISOString().split('T')[0];
-
-                    try {
-                        const response = await fetch(`weekly_${dateStr}.json`);
-                        if (response.ok) {
-                            availableDates.weekly.push(dateStr);
                         }
                     } catch (e) {
                         // File doesn't exist, continue
@@ -400,12 +378,9 @@
             if (type === 'current') {
                 dateLabel = data.date + ' 🔴 LIVE';
                 periodLabel = 'Today';
-            } else if (type === 'daily') {
+            } else {
                 dateLabel = data.date;
                 periodLabel = 'Day';
-            } else {
-                dateLabel = `${data.weekStart} to ${data.weekEnd}`;
-                periodLabel = 'Week';
             }
 
             const html = `

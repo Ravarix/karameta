@@ -51,11 +51,10 @@ type PlayRateStats struct {
 }
 
 type CombinationStats struct {
-	Count        int            `json:"count"`
-	FirstSeen    time.Time      `json:"firstSeen"`
-	LastSeen     time.Time      `json:"lastSeen"`
-	DailyCounts  map[string]int `json:"dailyCounts"`
-	WeeklyCounts map[string]int `json:"weeklyCounts"`
+	Count       int            `json:"count"`
+	FirstSeen   time.Time      `json:"firstSeen"`
+	LastSeen    time.Time      `json:"lastSeen"`
+	DailyCounts map[string]int `json:"dailyCounts"`
 }
 
 // playRateStatsJSON is a JSON-friendly version of PlayRateStats
@@ -143,14 +142,6 @@ type DailySummary struct {
 	TopCombos    []TopCombination              `json:"topCombinations"`
 }
 
-type WeeklySummary struct {
-	WeekStart    string                        `json:"weekStart"`
-	WeekEnd      string                        `json:"weekEnd"`
-	TotalGames   int                           `json:"totalGames"`
-	Combinations map[LeaderBaseCombination]int `json:"-"`
-	TopCombos    []TopCombination              `json:"topCombinations"`
-}
-
 type TopCombination struct {
 	Combination LeaderBaseCombination `json:"combination"`
 	Count       int                   `json:"count"`
@@ -173,25 +164,6 @@ func (d DailySummary) MarshalJSON() ([]byte, error) {
 	}{
 		Combinations: combinations,
 		Alias:        (*Alias)(&d),
-	})
-}
-
-// MarshalJSON implements custom JSON marshaling for WeeklySummary
-func (w WeeklySummary) MarshalJSON() ([]byte, error) {
-	// Convert map with struct keys to map with string keys
-	combinations := make(map[string]int)
-	for combo, count := range w.Combinations {
-		key := fmt.Sprintf("%s/%s", combo.Leader, combo.Base)
-		combinations[key] = count
-	}
-
-	type Alias WeeklySummary
-	return json.Marshal(&struct {
-		Combinations map[string]int `json:"combinations"`
-		*Alias
-	}{
-		Combinations: combinations,
-		Alias:        (*Alias)(&w),
 	})
 }
 
@@ -304,11 +276,6 @@ func (s *Scraper) ExportDailySummary(date time.Time) error {
 	return s.exportSummary(summary, fmt.Sprintf("daily_%s.json", date.Format("2006-01-02")))
 }
 
-func (s *Scraper) ExportWeeklySummary(weekStart time.Time) error {
-	summary := s.stats.GetWeeklySummary(weekStart)
-	return s.exportSummary(summary, fmt.Sprintf("weekly_%s.json", weekStart.Format("2006-01-02")))
-}
-
 func (s *Scraper) exportSummary(data interface{}, filename string) error {
 	if err := os.MkdirAll(s.config.ExportDir, 0755); err != nil {
 		return fmt.Errorf("failed to create export directory: %w", err)
@@ -347,7 +314,6 @@ func (s *Scraper) updateIndex() error {
 	}
 
 	dailyDates := []string{}
-	weeklyDates := []string{}
 
 	for _, file := range files {
 		if file.IsDir() {
@@ -360,22 +326,14 @@ func (s *Scraper) updateIndex() error {
 			date := name[6 : len(name)-5]
 			dailyDates = append(dailyDates, date)
 		}
-
-		// Match weekly_YYYY-MM-DD.json
-		if len(name) > 7 && name[:7] == "weekly_" && name[len(name)-5:] == ".json" {
-			date := name[7 : len(name)-5]
-			weeklyDates = append(weeklyDates, date)
-		}
 	}
 
 	// Sort dates in descending order (newest first)
 	sortDatesDescending(dailyDates)
-	sortDatesDescending(weeklyDates)
 
 	index := map[string]interface{}{
 		"lastUpdated": time.Now().Format(time.RFC3339),
 		"daily":       dailyDates,
-		"weekly":      weeklyDates,
 	}
 
 	return s.exportSummary(index, "index.json")
@@ -405,7 +363,6 @@ func (p *PlayRateStats) AddGame(game Game) {
 
 	now := time.Now()
 	dayKey := now.Format("2006-01-02")
-	weekKey := getWeekStart(now).Format("2006-01-02")
 
 	// Track both player combinations, extracting IDs from nested objects
 	combinations := []LeaderBaseCombination{
@@ -417,9 +374,8 @@ func (p *PlayRateStats) AddGame(game Game) {
 		stats, exists := p.Stats[combo]
 		if !exists {
 			stats = &CombinationStats{
-				FirstSeen:    now,
-				DailyCounts:  make(map[string]int),
-				WeeklyCounts: make(map[string]int),
+				FirstSeen:   now,
+				DailyCounts: make(map[string]int),
 			}
 			p.Stats[combo] = stats
 		}
@@ -427,7 +383,6 @@ func (p *PlayRateStats) AddGame(game Game) {
 		stats.Count++
 		stats.LastSeen = now
 		stats.DailyCounts[dayKey]++
-		stats.WeeklyCounts[weekKey]++
 	}
 }
 
@@ -448,31 +403,6 @@ func (p *PlayRateStats) GetDailySummary(date time.Time) DailySummary {
 
 	return DailySummary{
 		Date:         dayKey,
-		TotalGames:   totalGames,
-		Combinations: combinations,
-		TopCombos:    getTopCombinations(combinations, totalGames, 10),
-	}
-}
-
-func (p *PlayRateStats) GetWeeklySummary(weekStart time.Time) WeeklySummary {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	weekKey := getWeekStart(weekStart).Format("2006-01-02")
-	weekEnd := weekStart.AddDate(0, 0, 6)
-	combinations := make(map[LeaderBaseCombination]int)
-	totalGames := 0
-
-	for combo, stats := range p.Stats {
-		if count, ok := stats.WeeklyCounts[weekKey]; ok {
-			combinations[combo] = count
-			totalGames += count
-		}
-	}
-
-	return WeeklySummary{
-		WeekStart:    weekKey,
-		WeekEnd:      weekEnd.Format("2006-01-02"),
 		TotalGames:   totalGames,
 		Combinations: combinations,
 		TopCombos:    getTopCombinations(combinations, totalGames, 10),
@@ -543,15 +473,6 @@ func getTopCombinations(combinations map[LeaderBaseCombination]int, totalGames i
 	return topCombos
 }
 
-func getWeekStart(t time.Time) time.Time {
-	// Start week on Monday
-	weekday := int(t.Weekday())
-	if weekday == 0 {
-		weekday = 7
-	}
-	return t.AddDate(0, 0, -weekday+1).Truncate(24 * time.Hour)
-}
-
 func main() {
 	log.Println("Starting Game Scraper...")
 
@@ -589,16 +510,7 @@ func main() {
 		}
 		log.Printf("Daily export completed for %s", yesterday.Format("2006-01-02"))
 
-	case "export-weekly":
-		log.Println("Mode: Weekly Export")
-		lastWeek := time.Now().AddDate(0, 0, -7)
-		weekStart := getWeekStart(lastWeek)
-		if err := scraper.ExportWeeklySummary(weekStart); err != nil {
-			log.Fatalf("Weekly export failed: %v", err)
-		}
-		log.Printf("Weekly export completed for week starting %s", weekStart.Format("2006-01-02"))
-
 	default:
-		log.Fatalf("Unknown mode: %s. Use 'scrape', 'export-current', 'export-daily', or 'export-weekly'", config.Mode)
+		log.Fatalf("Unknown mode: %s. Use 'scrape', 'export-current', or 'export-daily'", config.Mode)
 	}
 }
