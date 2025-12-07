@@ -2,9 +2,16 @@ name: Scrape Game Data
 
 on:
   schedule:
-    # Run every minute
-    - cron: '* * * * *'
+    # Run every 5 minutes (GitHub Actions doesn't reliably support every minute)
+    - cron: '*/5 * * * *'
   workflow_dispatch: # Allow manual trigger
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/scrape.yml'
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
 
 jobs:
   scrape:

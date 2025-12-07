@@ -139,7 +139,7 @@ func splitLeaderBase(s string) []string {
 type DailySummary struct {
 	Date         string                        `json:"date"`
 	TotalGames   int                           `json:"totalGames"`
-	Combinations map[LeaderBaseCombination]int `json:"combinations"`
+	Combinations map[LeaderBaseCombination]int `json:"-"`
 	TopCombos    []TopCombination              `json:"topCombinations"`
 }
 
@@ -147,7 +147,7 @@ type WeeklySummary struct {
 	WeekStart    string                        `json:"weekStart"`
 	WeekEnd      string                        `json:"weekEnd"`
 	TotalGames   int                           `json:"totalGames"`
-	Combinations map[LeaderBaseCombination]int `json:"combinations"`
+	Combinations map[LeaderBaseCombination]int `json:"-"`
 	TopCombos    []TopCombination              `json:"topCombinations"`
 }
 
@@ -155,6 +155,44 @@ type TopCombination struct {
 	Combination LeaderBaseCombination `json:"combination"`
 	Count       int                   `json:"count"`
 	Percentage  float64               `json:"percentage"`
+}
+
+// MarshalJSON implements custom JSON marshaling for DailySummary
+func (d DailySummary) MarshalJSON() ([]byte, error) {
+	// Convert map with struct keys to map with string keys
+	combinations := make(map[string]int)
+	for combo, count := range d.Combinations {
+		key := fmt.Sprintf("%s/%s", combo.Leader, combo.Base)
+		combinations[key] = count
+	}
+
+	type Alias DailySummary
+	return json.Marshal(&struct {
+		Combinations map[string]int `json:"combinations"`
+		*Alias
+	}{
+		Combinations: combinations,
+		Alias:        (*Alias)(&d),
+	})
+}
+
+// MarshalJSON implements custom JSON marshaling for WeeklySummary
+func (w WeeklySummary) MarshalJSON() ([]byte, error) {
+	// Convert map with struct keys to map with string keys
+	combinations := make(map[string]int)
+	for combo, count := range w.Combinations {
+		key := fmt.Sprintf("%s/%s", combo.Leader, combo.Base)
+		combinations[key] = count
+	}
+
+	type Alias WeeklySummary
+	return json.Marshal(&struct {
+		Combinations map[string]int `json:"combinations"`
+		*Alias
+	}{
+		Combinations: combinations,
+		Alias:        (*Alias)(&w),
+	})
 }
 
 type Config struct {
