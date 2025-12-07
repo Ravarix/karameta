@@ -433,9 +433,20 @@
         document.getElementById('typeSelect').addEventListener('change', (e) => {
             currentType = e.target.value;
             updateDateSelect();
-            if (availableDates[currentType].length > 0) {
+            if (currentType === 'current') {
+                loadData('current', 'live');
+            } else if (availableDates[currentType].length > 0) {
                 document.getElementById('dateSelect').value = availableDates[currentType][0];
                 loadData(currentType, availableDates[currentType][0]);
+            } else if (!indexLoaded) {
+                // Index hasn't loaded yet, wait a bit
+                showError('Loading historical data...');
+                setTimeout(() => {
+                    if (availableDates[currentType].length > 0) {
+                        document.getElementById('dateSelect').value = availableDates[currentType][0];
+                        loadData(currentType, availableDates[currentType][0]);
+                    }
+                }, 1000);
             }
         });
 
@@ -443,6 +454,8 @@
             loadData(currentType, e.target.value);
         });
 
+        // Load live data immediately, then load index in background
+        loadData('current', 'live');
         loadAvailableDates();
     </script>
 </body>

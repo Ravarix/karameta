@@ -328,7 +328,68 @@ func (s *Scraper) exportSummary(data interface{}, filename string) error {
 	}
 
 	log.Printf("Exported summary to %s", path)
+
+	// Automatically update index after any export (except index.json itself)
+	if filename != "index.json" {
+		if err := s.updateIndex(); err != nil {
+			log.Printf("Warning: failed to update index: %v", err)
+			// Don't fail the export if index update fails
+		}
+	}
+
 	return nil
+}
+
+func (s *Scraper) updateIndex() error {
+	files, err := os.ReadDir(s.config.ExportDir)
+	if err != nil {
+		return fmt.Errorf("failed to read export directory: %w", err)
+	}
+
+	dailyDates := []string{}
+	weeklyDates := []string{}
+
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		name := file.Name()
+
+		// Match daily_YYYY-MM-DD.json
+		if len(name) > 6 && name[:6] == "daily_" && name[len(name)-5:] == ".json" {
+			date := name[6 : len(name)-5]
+			dailyDates = append(dailyDates, date)
+		}
+
+		// Match weekly_YYYY-MM-DD.json
+		if len(name) > 7 && name[:7] == "weekly_" && name[len(name)-5:] == ".json" {
+			date := name[7 : len(name)-5]
+			weeklyDates = append(weeklyDates, date)
+		}
+	}
+
+	// Sort dates in descending order (newest first)
+	sortDatesDescending(dailyDates)
+	sortDatesDescending(weeklyDates)
+
+	index := map[string]interface{}{
+		"lastUpdated": time.Now().Format(time.RFC3339),
+		"daily":       dailyDates,
+		"weekly":      weeklyDates,
+	}
+
+	return s.exportSummary(index, "index.json")
+}
+
+func sortDatesDescending(dates []string) {
+	// Simple bubble sort in descending order
+	for i := 0; i < len(dates); i++ {
+		for j := i + 1; j < len(dates); j++ {
+			if dates[i] < dates[j] {
+				dates[i], dates[j] = dates[j], dates[i]
+			}
+		}
+	}
 }
 
 func NewPlayRateStats() *PlayRateStats {
@@ -518,7 +579,7 @@ func main() {
 		if err := scraper.exportSummary(summary, "current.json"); err != nil {
 			log.Fatalf("Current export failed: %v", err)
 		}
-		log.Printf("Current day export completed for %s", today.Format("2006-01-02"))
+		log.Printf("Current day export completed for %s (index updated)", today.Format("2006-01-02"))
 
 	case "export-daily":
 		log.Println("Mode: Daily Export")
