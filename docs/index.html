@@ -466,32 +466,27 @@
 
             const ctx = canvas.getContext('2d');
 
-            // Get top combinations data
-            const topCombos = data.topCombinations || [];
-            const topCount = Math.min(10, topCombos.length); // Show top 10
+            // Get all combinations and convert to array
+            const combinations = data.combinations || {};
+            const comboArray = Object.entries(combinations).map(([name, count]) => ({
+                name: name,
+                count: count
+            }));
 
-            const labels = topCombos.slice(0, topCount).map(combo => {
-                // Handle both string format and object format
-                if (typeof combo.combo === 'string') {
-                    return combo.combo;
-                } else if (combo.combo && combo.combo.leader && combo.combo.base) {
-                    return `${combo.combo.leader}/${combo.combo.base}`;
-                } else if (combo.combination) {
-                    // Alternative structure with 'combination' field
-                    if (typeof combo.combination === 'string') {
-                        return combo.combination;
-                    } else if (combo.combination.leader && combo.combination.base) {
-                        return `${combo.combination.leader}/${combo.combination.base}`;
-                    }
-                }
-                return 'Unknown';
-            });
-            const values = topCombos.slice(0, topCount).map(combo => combo.count);
+            // Sort by count descending
+            comboArray.sort((a, b) => b.count - a.count);
+
+            const topCount = Math.min(10, comboArray.length); // Show top 10
+
+            // Get labels and values for top combinations
+            const labels = comboArray.slice(0, topCount).map(combo => combo.name);
+            const values = comboArray.slice(0, topCount).map(combo => combo.count);
 
             // Calculate "Others" if there are more combinations
-            if (topCombos.length > topCount) {
-                const othersCount = topCombos.slice(topCount).reduce((sum, combo) => sum + combo.count, 0);
-                labels.push('Others');
+            if (comboArray.length > topCount) {
+                const othersCount = comboArray.slice(topCount).reduce((sum, combo) => sum + combo.count, 0);
+                const othersLabel = `Others (${comboArray.length - topCount} combinations)`;
+                labels.push(othersLabel);
                 values.push(othersCount);
             }
 
