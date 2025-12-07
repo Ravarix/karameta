@@ -470,7 +470,22 @@
             const topCombos = data.topCombinations || [];
             const topCount = Math.min(10, topCombos.length); // Show top 10
 
-            const labels = topCombos.slice(0, topCount).map(combo => combo.combo);
+            const labels = topCombos.slice(0, topCount).map(combo => {
+                // Handle both string format and object format
+                if (typeof combo.combo === 'string') {
+                    return combo.combo;
+                } else if (combo.combo && combo.combo.leader && combo.combo.base) {
+                    return `${combo.combo.leader}/${combo.combo.base}`;
+                } else if (combo.combination) {
+                    // Alternative structure with 'combination' field
+                    if (typeof combo.combination === 'string') {
+                        return combo.combination;
+                    } else if (combo.combination.leader && combo.combination.base) {
+                        return `${combo.combination.leader}/${combo.combination.base}`;
+                    }
+                }
+                return 'Unknown';
+            });
             const values = topCombos.slice(0, topCount).map(combo => combo.count);
 
             // Calculate "Others" if there are more combinations
