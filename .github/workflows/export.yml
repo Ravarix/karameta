@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   export-daily:
@@ -121,32 +122,3 @@ jobs:
           else
             echo "No changes to commit"
           fi
-
-  deploy-pages:
-    needs: [export-daily, export-weekly]
-    if: always()
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Create Pages directory
-        run: |
-          mkdir -p _site
-          cp -r exports/* _site/ 2>/dev/null || true
-          cp docs/index.html _site/index.html
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
