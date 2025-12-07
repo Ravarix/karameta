@@ -4,7 +4,7 @@ on:
   schedule:
     # Run daily at 00:05 UTC
     - cron: '5 0 * * *'
-    # Run weekly on Mondays at 00:10 UTC
+    # Run weekly on Mondays at 00:10 UTC (but will be sequential via needs)
     - cron: '10 0 * * 1'
   workflow_dispatch: # Allow manual trigger
 
@@ -16,11 +16,12 @@ permissions:
 jobs:
   export-daily:
     runs-on: ubuntu-latest
-    if: github.event.schedule == '5 0 * * *' || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -36,20 +37,47 @@ jobs:
           MODE: export-daily
         run: go run .
 
-      - name: Commit exports
+      - name: Commit and push exports
         run: |
           git config user.name "Game Scraper Bot"
           git config user.email "bot@github-actions"
           git add exports/
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Daily export - $(date -u +"%Y-%m-%d")" && git push)
+
+          # Check if there are changes to commit
+          if ! git diff --quiet --staged; then
+            git pull --rebase origin ${{ github.ref_name }}
+            git commit -m "Daily export - $(date -u +"%Y-%m-%d")"
+
+            # Retry push up to 3 times in case of conflicts
+            for i in 1 2 3; do
+              if git push; then
+                echo "Push succeeded"
+                break
+              else
+                echo "Push failed, attempt $i of 3"
+                if [ $i -lt 3 ]; then
+                  git pull --rebase origin ${{ github.ref_name }}
+                  sleep 2
+                else
+                  echo "Push failed after 3 attempts"
+                  exit 1
+                fi
+              fi
+            done
+          else
+            echo "No changes to commit"
+          fi
 
   export-weekly:
     runs-on: ubuntu-latest
-    if: github.event.schedule == '10 0 * * 1' || github.event_name == 'workflow_dispatch'
+    needs: [export-daily]
+    if: always()
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -65,23 +93,47 @@ jobs:
           MODE: export-weekly
         run: go run .
 
-      - name: Commit exports
+      - name: Commit and push exports
         run: |
           git config user.name "Game Scraper Bot"
           git config user.email "bot@github-actions"
           git add exports/
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Weekly export - $(date -u +"%Y-%m-%d")" && git push)
+
+          # Check if there are changes to commit
+          if ! git diff --quiet --staged; then
+            git pull --rebase origin ${{ github.ref_name }}
+            git commit -m "Weekly export - $(date -u +"%Y-%m-%d")"
+
+            # Retry push up to 3 times in case of conflicts
+            for i in 1 2 3; do
+              if git push; then
+                echo "Push succeeded"
+                break
+              else
+                echo "Push failed, attempt $i of 3"
+                if [ $i -lt 3 ]; then
+                  git pull --rebase origin ${{ github.ref_name }}
+                  sleep 2
+                else
+                  echo "Push failed after 3 attempts"
+                  exit 1
+                fi
+              fi
+            done
+          else
+            echo "No changes to commit"
+          fi
 
   deploy-pages:
-    needs: [export-daily]
-    if: always() && (needs.export-daily.result == 'success' || needs.export-daily.result == 'skipped')
+    needs: [export-daily, export-weekly]
+    if: always()
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.ref_name }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
