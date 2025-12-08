@@ -502,7 +502,7 @@
             const totalCount = comboArray.reduce((sum, combo) => sum + combo.count, 0);
 
             // Filter combinations with >0.5% play rate
-            const threshold = 0.5;
+            const threshold = 2.0;
             const significantCombos = comboArray.filter(combo => {
                 const percentage = (combo.count / totalCount) * 100;
                 return percentage > threshold;
@@ -533,7 +533,7 @@
                 count: count
             }));
             const aspectLabels = aspectArray.map(aspect => aspect.name);
-            const aspectValues = aspectArray.map(aspect => aspect.count)
+            const aspectValues = aspectArray.map(aspect => aspect.count);
 
             // Star Wars themed colors: blues (heroes), reds (villains), greens (bounty hunters), purples (force), golds (neutral)
             const colors = [
@@ -544,10 +544,15 @@
                 '#0984e3', '#d63031', '#00b894', '#fdcb6e', '#a29bfe'
             ];
 
+            const aspectColors = [
+                '#d63031', '#20bf6b', '#f6dc5c', '#ffffff',
+                '#706f6f', '#0984e3', '#000000'
+            ]
+
             chartInstance = new Chart(ctx, {
                 type: 'pie',
                 data: {
-                    labels: labels + aspectLabels,
+                    labels: labels,
                     datasets: [{
                         data: values,
                         backgroundColor: colors,
@@ -555,6 +560,7 @@
                         borderWidth: 2
                     },{
                         data: aspectValues,
+                        backgroundColor: aspectColors,
                     }]
                 },
                 options: {
