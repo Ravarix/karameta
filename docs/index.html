@@ -528,12 +528,26 @@
                 values.push(othersCount);
             }
 
-            const aspectArray = Object.entries(data.aspectDistribution || {}).map(([name, count]) => ({
-                name: name,
-                count: count
-            }));
+            const alignments = ["Heroism", "Villainy", "None"];
+
+            const aspectArray = Object.entries(data.aspectDistribution || {})
+                .filter(([name]) => !alignments.includes(name))
+                .map(([name, count]) => ({
+                    name: name,
+                    count: count
+                }));
             const aspectLabels = aspectArray.map(aspect => aspect.name);
             const aspectValues = aspectArray.map(aspect => aspect.count);
+
+            const alignmentArray = Object.entries(data.aspectDistribution || {})
+                .filter(([name]) => alignments.includes(name))
+                .map(([name, count]) => ({
+                    name: name,
+                    count: count
+                }));
+            const alignmentLabels = alignmentArray.map(aspect => aspect.name);
+            const alignmentValues = alignmentArray.map(aspect => aspect.count);
+
 
             // Star Wars themed colors: blues (heroes), reds (villains), greens (bounty hunters), purples (force), golds (neutral)
             const colors = [
@@ -545,8 +559,11 @@
             ];
 
             const aspectColors = [
-                '#d63031', '#20bf6b', '#f6dc5c', '#ffffff',
-                '#706f6f', '#0984e3', '#000000'
+                '#d63031', '#20bf6b', '#f6dc5c', '#0984e3', '#000000'
+            ]
+
+            const alignmentColors = [
+                '#ffffff', '#706f6f', '#000000'
             ]
 
             chartInstance = new Chart(ctx, {
@@ -561,6 +578,9 @@
                     },{
                         data: aspectValues,
                         backgroundColor: aspectColors,
+                    }, {
+                        data: alignmentValues,
+                        backgroundColor: alignmentColors,
                     }]
                 },
                 options: {
@@ -579,8 +599,24 @@
                         },
                         tooltip: {
                             callbacks: {
+                                title: function(context) {
+                                    if (context[0].datasetIndex === 1) {
+                                        return aspectLabels[context[0].dataIndex];
+                                    }
+                                    if (context[0].datasetIndex === 2) {
+                                        return alignmentLabels[context[0].dataIndex];
+                                    }
+                                    const labelIndex = (context[0].datasetIndex * 2) + context[0].dataIndex;
+                                    return context[0].chart.data.labels[labelIndex] + ': ' + context[0].formattedValue;
+                                },
                                 label: function(context) {
-                                    const label = context.label || '';
+                                    var label = context.label || '';
+                                    if (context.datasetIndex === 1) {
+                                        label = aspectLabels[context.dataIndex];
+                                    }
+                                    if (context.datasetIndex === 2) {
+                                        label = alignmentLabels[context.dataIndex];
+                                    }
                                     const value = context.parsed || 0;
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                     const percentage = ((value / total) * 100).toFixed(1);

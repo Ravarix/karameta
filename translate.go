@@ -175,7 +175,7 @@ var leaderMap = map[string]LeaderInfo{
 	"LOF_014": {Name: "GI_LOF", Aspects: []string{"Cunning", "Villainy"}},
 	"LOF_015": {Name: "Cal", Aspects: []string{"Cunning", "Heroism"}},
 	"LOF_016": {Name: "Qui", Aspects: []string{"Cunning", "Heroism"}},
-	"LOF_017": {Name: "Darth", Aspects: []string{"Villainy"}},
+	"LOF_017": {Name: "Revan", Aspects: []string{"Villainy"}},
 	"LOF_018": {Name: "Anakin_LOF", Aspects: []string{"Heroism"}},
 	"IBH_001": {Name: "Leia_IBH", Aspects: []string{"Command", "Heroism"}},
 	"IBH_053": {Name: "Vader_IBH", Aspects: []string{"Aggression", "Villainy"}},
