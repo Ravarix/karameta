@@ -498,19 +498,32 @@
                 count: count
             }));
 
+            // Calculate total for percentages
+            const totalCount = comboArray.reduce((sum, combo) => sum + combo.count, 0);
+
+            // Filter combinations with >0.5% play rate
+            const threshold = 0.5;
+            const significantCombos = comboArray.filter(combo => {
+                const percentage = (combo.count / totalCount) * 100;
+                return percentage > threshold;
+            });
+
             // Sort by count descending
-            comboArray.sort((a, b) => b.count - a.count);
+            significantCombos.sort((a, b) => b.count - a.count);
 
-            const topCount = Math.min(20, comboArray.length); // Show top 20
-
-            // Get labels and values for top combinations
-            const labels = comboArray.slice(0, topCount).map(combo => combo.name);
-            const values = comboArray.slice(0, topCount).map(combo => combo.count);
+            // Get labels and values for significant combinations
+            const labels = significantCombos.map(combo => combo.name);
+            const values = significantCombos.map(combo => combo.count);
 
             // Calculate "Others" if there are more combinations
-            if (comboArray.length > topCount) {
-                const othersCount = comboArray.slice(topCount).reduce((sum, combo) => sum + combo.count, 0);
-                const othersLabel = `Others (${comboArray.length - topCount} combinations)`;
+            const remainingCombos = comboArray.filter(combo => {
+                const percentage = (combo.count / totalCount) * 100;
+                return percentage <= threshold;
+            });
+
+            if (remainingCombos.length > 0) {
+                const othersCount = remainingCombos.reduce((sum, combo) => sum + combo.count, 0);
+                const othersLabel = `Others (${remainingCombos.length} combinations <0.5%)`;
                 labels.push(othersLabel);
                 values.push(othersCount);
             }
