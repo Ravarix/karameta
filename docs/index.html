@@ -528,6 +528,13 @@
                 values.push(othersCount);
             }
 
+            const aspectArray = Object.entries(data.aspectDistribution || {}).map(([name, count]) => ({
+                name: name,
+                count: count
+            }));
+            const aspectLabels = aspectArray.map(aspect => aspect.name);
+            const aspectValues = aspectArray.map(aspect => aspect.count)
+
             // Star Wars themed colors: blues (heroes), reds (villains), greens (bounty hunters), purples (force), golds (neutral)
             const colors = [
                 '#4a9eff', '#ff4757', '#2ed573', '#d4af37', '#8b5cf6',
@@ -538,14 +545,16 @@
             ];
 
             chartInstance = new Chart(ctx, {
-                type: 'doughnut',
+                type: 'pie',
                 data: {
-                    labels: labels,
+                    labels: labels + aspectLabels,
                     datasets: [{
                         data: values,
                         backgroundColor: colors,
                         borderColor: '#ffffff',
                         borderWidth: 2
+                    },{
+                        data: aspectValues,
                     }]
                 },
                 options: {
