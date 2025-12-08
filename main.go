@@ -119,7 +119,7 @@ func (b Base) Normalize() string {
 
 func (l Leader) Normalize() string {
 	if normalized, ok := leaderMap[l.ID]; ok {
-		return normalized
+		return normalized.Name
 	}
 	return l.ID
 }
