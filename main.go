@@ -52,9 +52,8 @@ type PlayRateStats struct {
 
 type CombinationStats struct {
 	Count       int            `json:"count"`
-	FirstSeen   time.Time      `json:"firstSeen"`
-	LastSeen    time.Time      `json:"lastSeen"`
 	DailyCounts map[string]int `json:"dailyCounts"`
+	Aspects     []string       `json:"aspects"`
 }
 
 // playRateStatsJSON is a JSON-friendly version of PlayRateStats
@@ -110,18 +109,19 @@ func (p *PlayRateStats) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (b Base) Normalize() string {
-	if normalized, ok := baseMap[b.ID]; ok {
-		return normalized
+func (b Base) Info() BaseInfo {
+	if info, ok := baseMap[b.ID]; ok {
+		return info
 	}
-	return b.ID
+	return BaseInfo{b.ID, "Unknown"}
 }
 
-func (l Leader) Normalize() string {
-	if normalized, ok := leaderMap[l.ID]; ok {
-		return normalized.Name
+func (l Leader) Info() LeaderInfo {
+	if info, ok := leaderMap[l.ID]; ok {
+		return info
 	}
-	return l.ID
+	log.Printf("Warning: unknown leader ID: %s", l.ID)
+	return LeaderInfo{l.ID, []string{"Unknown"}}
 }
 
 // splitLeaderBase splits a "leader/base" string into parts
@@ -365,23 +365,35 @@ func (p *PlayRateStats) AddGame(game Game) {
 	dayKey := now.Format("2006-01-02")
 
 	// Track both player combinations, extracting IDs from nested objects
-	combinations := []LeaderBaseCombination{
-		{Leader: game.Player1Leader.Normalize(), Base: game.Player1Base.Normalize()},
-		{Leader: game.Player2Leader.Normalize(), Base: game.Player2Base.Normalize()},
+	combinations := []struct {
+		leader LeaderInfo
+		base   BaseInfo
+	}{
+		{leader: game.Player1Leader.Info(), base: game.Player1Base.Info()},
+		{leader: game.Player2Leader.Info(), base: game.Player2Base.Info()},
 	}
 
 	for _, combo := range combinations {
-		stats, exists := p.Stats[combo]
+		comboKey := LeaderBaseCombination{Leader: combo.leader.Name, Base: combo.base.Name}
+		stats, exists := p.Stats[comboKey]
+		aspects := make(map[string]struct{})
+		for _, aspect := range combo.leader.Aspects {
+			aspects[aspect] = struct{}{}
+		}
+		aspects[combo.base.Aspect] = struct{}{}
+		aspectArray := make([]string, 0, len(aspects))
+		for aspect := range aspects {
+			aspectArray = append(aspectArray, aspect)
+		}
 		if !exists {
 			stats = &CombinationStats{
-				FirstSeen:   now,
 				DailyCounts: make(map[string]int),
+				Aspects:     aspectArray,
 			}
-			p.Stats[combo] = stats
+			p.Stats[comboKey] = stats
 		}
 
 		stats.Count++
-		stats.LastSeen = now
 		stats.DailyCounts[dayKey]++
 	}
 }
