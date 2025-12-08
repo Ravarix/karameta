@@ -378,7 +378,7 @@ func (p *PlayRateStats) BackfillAspects() {
 			aspects := make(map[string]struct{})
 
 			// Try to get leader info
-			for leaderID, leaderInfo := range leaderMap {
+			for _, leaderInfo := range leaderMap {
 				if leaderInfo.Name == combo.Leader {
 					for _, aspect := range leaderInfo.Aspects {
 						if aspect != "" && aspect != "Unknown" {
@@ -390,7 +390,7 @@ func (p *PlayRateStats) BackfillAspects() {
 			}
 
 			// Try to get base info
-			for baseID, baseInfo := range baseMap {
+			for _, baseInfo := range baseMap {
 				if baseInfo.Name == combo.Base {
 					if baseInfo.Aspect != "" && baseInfo.Aspect != "Unknown" {
 						aspects[baseInfo.Aspect] = struct{}{}
