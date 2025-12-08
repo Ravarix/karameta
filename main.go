@@ -99,6 +99,12 @@ func (p *PlayRateStats) UnmarshalJSON(data []byte) error {
 				Leader: parts[0],
 				Base:   parts[1],
 			}
+
+			// Ensure aspects array is not nil
+			if stats.Aspects == nil {
+				stats.Aspects = []string{}
+			}
+
 			p.Stats[combo] = stats
 		}
 	}
@@ -211,6 +217,10 @@ func NewScraper(config Config) (*Scraper, error) {
 	if err != nil {
 		log.Printf("No existing stats found, starting fresh: %v", err)
 		stats = NewPlayRateStats()
+	} else {
+		// Backfill aspects for any existing data that doesn't have them
+		stats.BackfillAspects()
+		log.Println("Backfilled aspects for existing combination stats")
 	}
 
 	return &Scraper{
@@ -357,6 +367,48 @@ func NewPlayRateStats() *PlayRateStats {
 	}
 }
 
+// BackfillAspects updates any combination stats that don't have aspects populated
+func (p *PlayRateStats) BackfillAspects() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	for combo, stats := range p.Stats {
+		if stats.Aspects == nil || len(stats.Aspects) == 0 {
+			// Reconstruct aspects from combo
+			aspects := make(map[string]struct{})
+
+			// Try to get leader info
+			for leaderID, leaderInfo := range leaderMap {
+				if leaderInfo.Name == combo.Leader {
+					for _, aspect := range leaderInfo.Aspects {
+						if aspect != "" && aspect != "Unknown" {
+							aspects[aspect] = struct{}{}
+						}
+					}
+					break
+				}
+			}
+
+			// Try to get base info
+			for baseID, baseInfo := range baseMap {
+				if baseInfo.Name == combo.Base {
+					if baseInfo.Aspect != "" && baseInfo.Aspect != "Unknown" {
+						aspects[baseInfo.Aspect] = struct{}{}
+					}
+					break
+				}
+			}
+
+			// Convert to array
+			aspectArray := make([]string, 0, len(aspects))
+			for aspect := range aspects {
+				aspectArray = append(aspectArray, aspect)
+			}
+			stats.Aspects = aspectArray
+		}
+	}
+}
+
 func (p *PlayRateStats) AddGame(game Game) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -376,21 +428,33 @@ func (p *PlayRateStats) AddGame(game Game) {
 	for _, combo := range combinations {
 		comboKey := LeaderBaseCombination{Leader: combo.leader.Name, Base: combo.base.Name}
 		stats, exists := p.Stats[comboKey]
+
+		// Build aspects set, filtering out "Unknown" and empty
 		aspects := make(map[string]struct{})
 		for _, aspect := range combo.leader.Aspects {
-			aspects[aspect] = struct{}{}
+			if aspect != "" && aspect != "Unknown" {
+				aspects[aspect] = struct{}{}
+			}
 		}
-		aspects[combo.base.Aspect] = struct{}{}
+		if combo.base.Aspect != "" && combo.base.Aspect != "Unknown" {
+			aspects[combo.base.Aspect] = struct{}{}
+		}
+
+		// Convert to sorted array
 		aspectArray := make([]string, 0, len(aspects))
 		for aspect := range aspects {
 			aspectArray = append(aspectArray, aspect)
 		}
+
 		if !exists {
 			stats = &CombinationStats{
 				DailyCounts: make(map[string]int),
 				Aspects:     aspectArray,
 			}
 			p.Stats[comboKey] = stats
+		} else if stats.Aspects == nil || len(stats.Aspects) == 0 {
+			// Backfill aspects for existing stats that don't have them
+			stats.Aspects = aspectArray
 		}
 
 		stats.Count++
