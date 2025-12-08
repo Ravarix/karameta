@@ -142,10 +142,11 @@ func splitLeaderBase(s string) []string {
 }
 
 type DailySummary struct {
-	Date         string                        `json:"date"`
-	TotalGames   int                           `json:"totalGames"`
-	Combinations map[LeaderBaseCombination]int `json:"-"`
-	TopCombos    []TopCombination              `json:"topCombinations"`
+	Date               string                        `json:"date"`
+	TotalGames         int                           `json:"totalGames"`
+	Combinations       map[LeaderBaseCombination]int `json:"-"`
+	TopCombos          []TopCombination              `json:"topCombinations"`
+	AspectDistribution map[string]int                `json:"aspectDistribution"`
 }
 
 type TopCombination struct {
@@ -478,10 +479,11 @@ func (p *PlayRateStats) GetDailySummary(date time.Time) DailySummary {
 	}
 
 	return DailySummary{
-		Date:         dayKey,
-		TotalGames:   totalGames,
-		Combinations: combinations,
-		TopCombos:    getTopCombinations(combinations, totalGames, 10),
+		Date:               dayKey,
+		TotalGames:         totalGames,
+		Combinations:       combinations,
+		TopCombos:          getTopCombinations(combinations, totalGames, 10),
+		AspectDistribution: calculateAspectDistribution(p.Stats, combinations),
 	}
 }
 
@@ -516,6 +518,20 @@ func LoadStats(path string) (*PlayRateStats, error) {
 	}
 
 	return &stats, nil
+}
+
+func calculateAspectDistribution(stats map[LeaderBaseCombination]*CombinationStats, dayCounts map[LeaderBaseCombination]int) map[string]int {
+	aspectCounts := make(map[string]int)
+
+	for combo, count := range dayCounts {
+		if comboStats, ok := stats[combo]; ok && comboStats.Aspects != nil {
+			for _, aspect := range comboStats.Aspects {
+				aspectCounts[aspect] += count
+			}
+		}
+	}
+
+	return aspectCounts
 }
 
 func getTopCombinations(combinations map[LeaderBaseCombination]int, totalGames int, limit int) []TopCombination {
