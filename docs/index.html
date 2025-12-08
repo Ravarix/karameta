@@ -502,7 +502,7 @@
             const totalCount = comboArray.reduce((sum, combo) => sum + combo.count, 0);
 
             // Filter combinations with >0.5% play rate
-            const threshold = 2.0;
+            const threshold = 0.5;
             const significantCombos = comboArray.filter(combo => {
                 const percentage = (combo.count / totalCount) * 100;
                 return percentage > threshold;
