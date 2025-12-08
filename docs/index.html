@@ -528,10 +528,10 @@
                 values.push(othersCount);
             }
 
-            const alignments = ["Heroism", "Villainy", "None"];
+            const alignments = ["Heroism", "Villainy"];
 
             const aspectArray = Object.entries(data.aspectDistribution || {})
-                .filter(([name]) => !alignments.includes(name))
+                .filter(([name]) => !alignments.includes(name) && name !== "None")
                 .map(([name, count]) => ({
                     name: name,
                     count: count
@@ -563,7 +563,7 @@
             ]
 
             const alignmentColors = [
-                '#ffffff', '#706f6f', '#000000'
+                '#ffffff', '#000000'
             ]
 
             chartInstance = new Chart(ctx, {

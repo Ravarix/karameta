@@ -78,7 +78,7 @@ var baseMap = map[string]BaseInfo{
 	"JTL_024": {Name: "DV", Aspect: "Command"},
 	"JTL_025": {Name: "Thermal", Aspect: "Aggression"},
 	"JTL_028": {Name: "Nabat", Aspect: "Cunning"},
-	"JTL_031": {Name: "Country", Aspect: "None"},
+	"JTL_031": {Name: "Country", Aspect: ""},
 
 	"LOF_019": {Name: "Vergence", Aspect: "Vigilance"},
 	"LOF_022": {Name: "Monastery", Aspect: "Command"},
