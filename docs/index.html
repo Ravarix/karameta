@@ -334,10 +334,11 @@
             daily: []
         };
         let currentType = 'current';
+        const ghRoot = 'https://raw.githubusercontent.com/Ravarix/karameta/refs/heads/main/'
 
         async function loadAvailableDates() {
             try {
-                const response = await fetch('https://raw.githubusercontent.com/ravarix/karameta/data/index.json?t=' + Date.now());
+                const response = await fetch(ghRoot + 'data/index.json?t=' + Date.now());
                 if (response.ok) {
                     const index = await response.json();
                     availableDates.daily = index.daily || [];
@@ -406,7 +407,7 @@
                     filename = `data/${type}_${date}.json`;
                 }
 
-                const response = await fetch('https://raw.githubusercontent.com/ravarix/karameta/' + filename + '?t=' + Date.now()); // Cache busting
+                const response = await fetch(ghRoot + filename + '?t=' + Date.now()); // Cache busting
 
                 if (!response.ok) {
                     throw new Error(`Failed to load ${filename}`);
