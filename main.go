@@ -15,7 +15,7 @@ const (
 	DefaultAPIURL        = "https://api.karabast.net/api/ongoing-games"
 	DefaultBloomFilePath = "./bloom_filter.dat"
 	DefaultStatsFilePath = "./stats.json"
-	DefaultExportDir     = "./docs/data"
+	DefaultExportDir     = "./data"
 )
 
 type Leader struct {
@@ -343,8 +343,7 @@ func (s *Scraper) updateIndex() error {
 	sortDatesDescending(dailyDates)
 
 	index := map[string]interface{}{
-		"lastUpdated": time.Now().Format(time.RFC3339),
-		"daily":       dailyDates,
+		"daily": dailyDates,
 	}
 
 	return s.exportSummary(index, "index.json")
