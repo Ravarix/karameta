@@ -1,3 +1,5 @@
+https://ravarix.github.io/karameta/
+
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `API_URL` | API endpoint to scrape | `https://api.karabast.net/api/ongoing-games` |
