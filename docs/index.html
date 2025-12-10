@@ -398,7 +398,10 @@
 
                 let filename;
                 if (type === 'current') {
-                    filename = 'data/current.json';
+                    let today = new Date();
+                    const offset = today.getTimezoneOffset();
+                    today = new Date(today.getTime() - (offset*60*1000));
+                    filename = `data/daily_${today.toISOString().split('T')[0]}.json`;
                     // Auto-refresh every 30 seconds for current view
                     autoRefreshInterval = setInterval(() => {
                         loadData('current', 'live');

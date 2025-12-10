@@ -587,20 +587,10 @@ func main() {
 	case "export-current":
 		log.Println("Mode: Current Day Export")
 		today := time.Now()
-		summary := scraper.stats.GetDailySummary(today)
-		if err := scraper.exportSummary(summary, "current.json"); err != nil {
+		if err := scraper.ExportDailySummary(today); err != nil {
 			log.Fatalf("Current export failed: %v", err)
 		}
 		log.Printf("Current day export completed for %s (index updated)", today.Format("2006-01-02"))
-
-	case "export-daily":
-		log.Println("Mode: Daily Export")
-		yesterday := time.Now().AddDate(0, 0, -1)
-		if err := scraper.ExportDailySummary(yesterday); err != nil {
-			log.Fatalf("Daily export failed: %v", err)
-		}
-		log.Printf("Daily export completed for %s", yesterday.Format("2006-01-02"))
-
 	default:
 		log.Fatalf("Unknown mode: %s. Use 'scrape', 'export-current', or 'export-daily'", config.Mode)
 	}
