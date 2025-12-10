@@ -155,6 +155,11 @@ type TopCombination struct {
 	Percentage  float64               `json:"percentage"`
 }
 
+func getNormalizedTime() time.Time {
+	pacific := time.FixedZone("PST", -8*60*60)
+	return time.Now().UTC().In(pacific)
+}
+
 // MarshalJSON implements custom JSON marshaling for DailySummary
 func (d DailySummary) MarshalJSON() ([]byte, error) {
 	// Convert map with struct keys to map with string keys
@@ -284,7 +289,10 @@ func (s *Scraper) Scrape(ctx context.Context) error {
 
 func (s *Scraper) ExportDailySummary(date time.Time) error {
 	summary := s.stats.GetDailySummary(date)
-	return s.exportSummary(summary, fmt.Sprintf("daily_%s.json", date.Format("2006-01-02")))
+	if err := s.exportSummary(summary, fmt.Sprintf("daily_%s.json", date.Format("2006-01-02"))); err != nil {
+		return err
+	}
+	return s.exportSummary(summary, "current.json")
 }
 
 func (s *Scraper) exportSummary(data interface{}, filename string) error {
@@ -413,7 +421,7 @@ func (p *PlayRateStats) AddGame(game Game) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	now := time.Now()
+	now := getNormalizedTime()
 	dayKey := now.Format("2006-01-02")
 
 	// Track both player combinations, extracting IDs from nested objects
@@ -586,7 +594,7 @@ func main() {
 
 	case "export-current":
 		log.Println("Mode: Current Day Export")
-		today := time.Now()
+		today := getNormalizedTime()
 		if err := scraper.ExportDailySummary(today); err != nil {
 			log.Fatalf("Current export failed: %v", err)
 		}
