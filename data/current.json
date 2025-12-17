@@ -107,6 +107,7 @@
     "Finn/ECL": 2,
     "GI_SOR/Blue_30": 4,
     "GI_SOR/Blue_Force": 1,
+    "GI_SOR/Colossus": 1,
     "GI_SOR/ECL": 1,
     "GI_SOR/Jedha": 16,
     "GI_SOR/Security": 13,
@@ -115,7 +116,7 @@
     "Gar/DV": 7,
     "Gar/ECL": 60,
     "Gar/TT": 1,
-    "Gar/Yellow_30": 14,
+    "Gar/Yellow_30": 15,
     "Gar/Yellow_Force": 3,
     "Grievous/Green_30": 1,
     "Han_JTL/Country": 6,
@@ -229,7 +230,7 @@
     "Mandalorian/Green_30": 7,
     "Mandalorian/Red_30": 6,
     "Mandalorian/TT": 6,
-    "Maul/Blue_Force": 84,
+    "Maul/Blue_Force": 85,
     "Maul/Vergence": 1,
     "Maul/Yellow_Force": 2,
     "Maul_TWI/Blue_30": 2,
@@ -246,9 +247,9 @@
     "Obi_LOF/Destruction": 5,
     "Obi_LOF/Green_Force": 2,
     "Obi_LOF/Monastery": 1,
-    "Obi_LOF/Red_Force": 3,
-    "Obi_LOF/Vergence": 23,
-    "Obi_LOF/Yellow_Force": 63,
+    "Obi_LOF/Red_Force": 4,
+    "Obi_LOF/Vergence": 24,
+    "Obi_LOF/Yellow_Force": 64,
     "Obi_TWI/Blue_30": 1,
     "Obi_TWI/DV": 6,
     "Obi_TWI/ECL": 1,
@@ -257,13 +258,13 @@
     "Padmé/Yellow_30": 1,
     "Padmé_TWI/Yellow_30": 2,
     "Padmé_TWI/Yellow_Force": 1,
-    "Palpatine_SEC/DV": 115,
+    "Palpatine_SEC/DV": 116,
     "Palpatine_SEC/ECL": 6,
     "Palpatine_SEC/Green_30": 4,
     "Palpatine_SEC/Yellow_30": 1,
     "Palpatine_SOR/Blue_30": 2,
     "Palpatine_SOR/Blue_Force": 2,
-    "Palpatine_SOR/Colossus": 73,
+    "Palpatine_SOR/Colossus": 74,
     "Palpatine_SOR/DV": 28,
     "Palpatine_SOR/ECL": 5,
     "Palpatine_SOR/Green_30": 1,
@@ -351,7 +352,7 @@
     "Snoke/Blue_Force": 4,
     "Snoke/DV": 1,
     "Snoke/Green_30": 7,
-    "Snoke/Red_30": 23,
+    "Snoke/Red_30": 24,
     "Snoke/Yellow_30": 16,
     "Snoke/Yellow_Force": 5,
     "Talzin/Blue_Force": 1,
@@ -383,7 +384,7 @@
     "Vader_JTL/DV": 3,
     "Vader_JTL/Red_30": 24,
     "Vader_JTL/TT": 5,
-    "Vader_JTL/Yellow_30": 199,
+    "Vader_JTL/Yellow_30": 200,
     "Vader_SOR/Blue_Force": 1,
     "Vader_SOR/DV": 10,
     "Vizsla/Blue_30": 9,
@@ -420,7 +421,7 @@
     "Yularen/Thermal": 3
   },
   "date": "2025-12-17",
-  "totalGames": 6104,
+  "totalGames": 6114,
   "topCombinations": [
     {
       "combination": {
@@ -428,7 +429,7 @@
         "base": "DV"
       },
       "count": 398,
-      "percentage": 6.520314547837483
+      "percentage": 6.509649983644096
     },
     {
       "combination": {
@@ -436,7 +437,7 @@
         "base": "DV"
       },
       "count": 241,
-      "percentage": 3.9482306684141544
+      "percentage": 3.9417729800457963
     },
     {
       "combination": {
@@ -444,15 +445,15 @@
         "base": "Red_30"
       },
       "count": 230,
-      "percentage": 3.768020969855832
+      "percentage": 3.7618580307491003
     },
     {
       "combination": {
         "leader": "Vader_JTL",
         "base": "Yellow_30"
       },
-      "count": 199,
-      "percentage": 3.2601572739187414
+      "count": 200,
+      "percentage": 3.2711808963035653
     },
     {
       "combination": {
@@ -460,7 +461,7 @@
         "base": "ECL"
       },
       "count": 187,
-      "percentage": 3.063564875491481
+      "percentage": 3.0585541380438337
     },
     {
       "combination": {
@@ -468,7 +469,7 @@
         "base": "Yellow_30"
       },
       "count": 125,
-      "percentage": 2.0478374836173003
+      "percentage": 2.0444880601897286
     },
     {
       "combination": {
@@ -476,15 +477,15 @@
         "base": "DV"
       },
       "count": 120,
-      "percentage": 1.9659239842726082
+      "percentage": 1.9627085377821394
     },
     {
       "combination": {
         "leader": "Palpatine_SEC",
         "base": "DV"
       },
-      "count": 115,
-      "percentage": 1.884010484927916
+      "count": 116,
+      "percentage": 1.8972849198560682
     },
     {
       "combination": {
@@ -492,7 +493,7 @@
         "base": "Green_30"
       },
       "count": 113,
-      "percentage": 1.8512450851900393
+      "percentage": 1.8482172064115145
     },
     {
       "combination": {
@@ -500,16 +501,16 @@
         "base": "Green_30"
       },
       "count": 104,
-      "percentage": 1.7038007863695939
+      "percentage": 1.7010140660778539
     }
   ],
   "aspectDistribution": {
-    "Aggression": 2856,
-    "Command": 4063,
-    "Cunning": 2183,
-    "Heroism": 2990,
+    "Aggression": 2860,
+    "Command": 4070,
+    "Cunning": 2186,
+    "Heroism": 2993,
     "None": 16,
-    "Vigilance": 2543,
-    "Villainy": 3127
+    "Vigilance": 2549,
+    "Villainy": 3134
   }
 }
