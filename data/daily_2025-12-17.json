@@ -1,7 +1,7 @@
 {
   "combinations": {
     "Ackbar/DV": 18,
-    "Ackbar/Green_30": 1,
+    "Ackbar/Green_30": 2,
     "Ackbar/Yellow_30": 1,
     "Ahsoka_LOF/Green_Force": 2,
     "Ahsoka_LOF/Vergence": 2,
@@ -23,7 +23,7 @@
     "Anakin_TWI/Yellow_30": 2,
     "Aphra/Colossus": 1,
     "Asajj/Blue_Force": 3,
-    "Asajj/DV": 9,
+    "Asajj/DV": 10,
     "Asajj/Droid": 12,
     "Asajj/ECL": 3,
     "Asajj/Red_30": 2,
@@ -40,7 +40,7 @@
     "Bail/Droid": 19,
     "Bail/Shadow": 23,
     "Bail/Yellow_Force": 1,
-    "Barriss/Blue_Force": 6,
+    "Barriss/Blue_Force": 7,
     "Barriss/Monastery": 4,
     "Bo-Katan/Blue_30": 12,
     "Bo-Katan/TT": 4,
@@ -132,8 +132,8 @@
     "Han_JTL/Red_30": 13,
     "Han_JTL/TT": 49,
     "Han_JTL/Thermal": 1,
-    "Han_SHD/Blue_30": 56,
-    "Han_SHD/Blue_Force": 66,
+    "Han_SHD/Blue_30": 57,
+    "Han_SHD/Blue_Force": 67,
     "Han_SHD/Colossus": 8,
     "Han_SHD/DV": 42,
     "Han_SHD/ECL": 203,
@@ -307,7 +307,7 @@
     "Pryce/DV": 14,
     "Pryce/Droid": 2,
     "Pryce/Green_30": 2,
-    "Qi'ra/DV": 96,
+    "Qi'ra/DV": 98,
     "Qi'ra/ECL": 4,
     "Qi'ra/Green_Force": 1,
     "Qi'ra/Red_30": 17,
@@ -363,7 +363,7 @@
     "Sister/Green_30": 6,
     "Sister/Yellow_30": 18,
     "Sly/Blue_Force": 2,
-    "Sly/DV": 70,
+    "Sly/DV": 71,
     "Sly/ECL": 3,
     "Sly/Green_30": 1,
     "Sly/Yellow_30": 2,
@@ -376,7 +376,7 @@
     "Snoke/Yellow_Force": 5,
     "Talzin/Blue_Force": 3,
     "Talzin/Green_Force": 10,
-    "Talzin/Red_Force": 67,
+    "Talzin/Red_Force": 68,
     "Talzin/Yellow_Force": 92,
     "Tarkin/Blue_30": 6,
     "Tarkin/Red_30": 4,
@@ -387,7 +387,7 @@
     "Thrawn_JTL/Green_30": 1,
     "Thrawn_JTL/Red_30": 50,
     "Thrawn_JTL/TT": 3,
-    "Thrawn_JTL/Yellow_30": 68,
+    "Thrawn_JTL/Yellow_30": 69,
     "Thrawn_JTL/Yellow_Force": 38,
     "Thrawn_SOR/Blue_30": 3,
     "Thrawn_SOR/Colossus": 1,
@@ -426,9 +426,9 @@
     "Wedge/TT": 1,
     "Wedge/Yellow_30": 51,
     "Yoda/Blue_Force": 4,
-    "Yoda/DV": 427,
+    "Yoda/DV": 428,
     "Yoda/Green_30": 8,
-    "Yoda/Green_Force": 66,
+    "Yoda/Green_Force": 67,
     "Yoda/IBH_002": 6,
     "Yoda/Jedha": 1,
     "Yoda/Nabat": 23,
@@ -446,15 +446,15 @@
     "Yularen/Thermal": 3
   },
   "date": "2025-12-17",
-  "totalGames": 6686,
+  "totalGames": 6698,
   "topCombinations": [
     {
       "combination": {
         "leader": "Yoda",
         "base": "DV"
       },
-      "count": 427,
-      "percentage": 6.386479210290158
+      "count": 428,
+      "percentage": 6.38996715437444
     },
     {
       "combination": {
@@ -462,7 +462,7 @@
         "base": "DV"
       },
       "count": 256,
-      "percentage": 3.8288962010170504
+      "percentage": 3.822036428784712
     },
     {
       "combination": {
@@ -470,7 +470,7 @@
         "base": "Red_30"
       },
       "count": 255,
-      "percentage": 3.8139395752318275
+      "percentage": 3.807106598984772
     },
     {
       "combination": {
@@ -478,7 +478,7 @@
         "base": "Yellow_30"
       },
       "count": 215,
-      "percentage": 3.2156745438229133
+      "percentage": 3.20991340698716
     },
     {
       "combination": {
@@ -486,15 +486,7 @@
         "base": "ECL"
       },
       "count": 203,
-      "percentage": 3.0361950344002393
-    },
-    {
-      "combination": {
-        "leader": "Sabé",
-        "base": "Yellow_30"
-      },
-      "count": 133,
-      "percentage": 1.9892312294346397
+      "percentage": 3.0307554493878768
     },
     {
       "combination": {
@@ -502,7 +494,15 @@
         "base": "Green_30"
       },
       "count": 133,
-      "percentage": 1.9892312294346397
+      "percentage": 1.9856673633920574
+    },
+    {
+      "combination": {
+        "leader": "Sabé",
+        "base": "Yellow_30"
+      },
+      "count": 133,
+      "percentage": 1.9856673633920574
     },
     {
       "combination": {
@@ -510,7 +510,7 @@
         "base": "DV"
       },
       "count": 129,
-      "percentage": 1.9294047262937482
+      "percentage": 1.9259480441922963
     },
     {
       "combination": {
@@ -518,7 +518,7 @@
         "base": "DV"
       },
       "count": 124,
-      "percentage": 1.8546215973676339
+      "percentage": 1.8512988951925948
     },
     {
       "combination": {
@@ -526,16 +526,16 @@
         "base": "Green_30"
       },
       "count": 119,
-      "percentage": 1.7798384684415196
+      "percentage": 1.7766497461928936
     }
   ],
   "aspectDistribution": {
-    "Aggression": 3141,
-    "Command": 4446,
-    "Cunning": 2371,
-    "Heroism": 3274,
+    "Aggression": 3144,
+    "Command": 4453,
+    "Cunning": 2376,
+    "Heroism": 3279,
     "None": 20,
-    "Vigilance": 2795,
-    "Villainy": 3426
+    "Vigilance": 2804,
+    "Villainy": 3433
   }
 }
