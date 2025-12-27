@@ -2,85 +2,109 @@
   "combinations": {
     "Anakin_TWI/DV": 10,
     "Asajj/Green_30": 1,
-    "Avar/Blue_Force": 1,
-    "Bo-Katan/Blue_30": 1,
-    "Boba_JTL/DV": 1,
-    "Boba_JTL/Green_30": 1,
+    "Avar/Blue_Force": 2,
+    "Bo-Katan/Blue_30": 2,
+    "Boba_JTL/DV": 2,
+    "Boba_JTL/Green_30": 2,
     "Bossk/Blue_30": 1,
+    "C-3PO/DV": 1,
     "C-3PO/TT": 1,
     "Cassian/Blue_30": 1,
-    "Dedra/Colossus": 2,
-    "Dryden/Blue_Force": 2,
-    "Gar/ECL": 2,
+    "Chewbacca/DV": 1,
+    "Dedra/Colossus": 3,
+    "Dooku/Country": 1,
+    "Dryden/Blue_Force": 4,
+    "Gar/ECL": 3,
     "Han_JTL/DV": 1,
+    "Han_JTL/Red_30": 1,
     "Han_SHD/Blue_30": 1,
     "Han_SHD/Blue_Force": 1,
-    "Han_SHD/Colossus": 2,
-    "Han_SHD/ECL": 9,
+    "Han_SHD/Colossus": 3,
+    "Han_SHD/ECL": 14,
     "Han_SHD/Security": 1,
+    "Han_SOR/Green_30": 1,
     "Han_SOR/Yellow_30": 1,
-    "Iden/DV": 3,
+    "Hera/Red_Force": 1,
+    "Iden/DV": 5,
     "Iden/Thermal": 1,
-    "Jabba_SEC/DV": 1,
-    "Jabba_SEC/ECL": 1,
+    "Jabba_SEC/DV": 4,
+    "Jabba_SEC/ECL": 2,
+    "Jabba_SEC/Yellow_30": 1,
     "Jyn/Green_30": 1,
     "Kanan/Blue_30": 1,
-    "Kanan/Colossus": 1,
+    "Kanan/Colossus": 2,
     "Kazuda/Green_30": 1,
+    "Kazuda/TT": 1,
     "Krennic/ECL": 1,
-    "Kylo/DV": 1,
-    "Kylo/TT": 2,
+    "Kylo/DV": 2,
+    "Kylo/TT": 3,
+    "Lando/DV": 1,
+    "Leia_SEC/DV": 1,
     "Leia_SEC/Red_30": 1,
-    "Luke_JTL/DV": 2,
+    "Leia_SOR/Red_30": 1,
+    "Luke_JTL/DV": 3,
     "Mace/Red_30": 1,
-    "Maul/Blue_Force": 6,
-    "Obi_LOF/Red_Force": 1,
-    "Obi_LOF/Vergence": 1,
+    "Maul/Blue_Force": 8,
+    "Obi_LOF/Red_Force": 2,
+    "Obi_LOF/Vergence": 2,
     "Obi_LOF/Yellow_Force": 1,
     "Obi_TWI/ECL": 1,
-    "Palpatine_SEC/DV": 3,
-    "Palpatine_SOR/Colossus": 1,
+    "Palpatine_SEC/DV": 4,
+    "Palpatine_SOR/Colossus": 2,
     "Palpatine_SOR/TT": 1,
-    "Palpatine_SOR/Yellow_30": 2,
+    "Palpatine_SOR/Yellow_30": 5,
     "Phasma/Green_30": 2,
-    "Piett/Red_30": 5,
-    "Poe/DV": 1,
+    "Piett/Red_30": 7,
+    "Poe/DV": 2,
     "Poe/Red_30": 1,
     "Qi'ra/Blue_30": 1,
-    "Qi'ra/DV": 4,
+    "Qi'ra/DV": 7,
+    "Qui/Blue_Force": 1,
     "Revan/Blue_Force": 1,
     "Rey_SHD/DV": 1,
-    "Sabé/DV": 1,
+    "Sabé/DV": 2,
     "Sabé/Green_30": 1,
-    "Sabé/TT": 4,
+    "Sabé/TT": 5,
     "Sabé/Yellow_30": 2,
+    "Satine/Blue_30": 1,
     "Satine/Yellow_30": 2,
     "Sly/DV": 2,
     "Snoke/Blue_30": 2,
-    "Snoke/DV": 2,
+    "Snoke/DV": 3,
     "Snoke/Yellow_30": 3,
     "Talzin/Green_Force": 2,
-    "Talzin/Red_Force": 1,
-    "Talzin/Yellow_Force": 3,
-    "Thrawn_JTL/DV": 3,
-    "Thrawn_SOR/Nabat": 1,
-    "Vader_JTL/Blue_30": 2,
-    "Vader_JTL/TT": 1,
+    "Talzin/Red_Force": 5,
+    "Talzin/Yellow_Force": 4,
+    "Thrawn_JTL/DV": 4,
+    "Thrawn_JTL/Red_30": 1,
+    "Thrawn_SOR/Nabat": 2,
+    "Vader_JTL/Blue_30": 3,
+    "Vader_JTL/Red_30": 1,
+    "Vader_JTL/TT": 2,
+    "Wedge/Thermal": 2,
     "Wedge/Yellow_30": 1,
-    "Yoda/DV": 11,
-    "Yoda/Green_Force": 1,
+    "Yoda/DV": 14,
+    "Yoda/Green_Force": 2,
     "Yularen/Red_30": 2
   },
   "date": "2025-12-27",
-  "totalGames": 138,
+  "totalGames": 210,
   "topCombinations": [
+    {
+      "combination": {
+        "leader": "Han_SHD",
+        "base": "ECL"
+      },
+      "count": 14,
+      "percentage": 6.666666666666667
+    },
     {
       "combination": {
         "leader": "Yoda",
         "base": "DV"
       },
-      "count": 11,
-      "percentage": 7.971014492753622
+      "count": 14,
+      "percentage": 6.666666666666667
     },
     {
       "combination": {
@@ -88,79 +112,72 @@
         "base": "DV"
       },
       "count": 10,
-      "percentage": 7.246376811594203
-    },
-    {
-      "combination": {
-        "leader": "Han_SHD",
-        "base": "ECL"
-      },
-      "count": 9,
-      "percentage": 6.521739130434782
+      "percentage": 4.761904761904762
     },
     {
       "combination": {
         "leader": "Maul",
         "base": "Blue_Force"
       },
-      "count": 6,
-      "percentage": 4.3478260869565215
+      "count": 8,
+      "percentage": 3.8095238095238098
     },
     {
       "combination": {
         "leader": "Piett",
         "base": "Red_30"
       },
-      "count": 5,
-      "percentage": 3.6231884057971016
+      "count": 7,
+      "percentage": 3.3333333333333335
     },
     {
       "combination": {
         "leader": "Qi'ra",
         "base": "DV"
       },
-      "count": 4,
-      "percentage": 2.898550724637681
+      "count": 7,
+      "percentage": 3.3333333333333335
+    },
+    {
+      "combination": {
+        "leader": "Palpatine_SOR",
+        "base": "Yellow_30"
+      },
+      "count": 5,
+      "percentage": 2.380952380952381
     },
     {
       "combination": {
         "leader": "Sabé",
         "base": "TT"
       },
-      "count": 4,
-      "percentage": 2.898550724637681
-    },
-    {
-      "combination": {
-        "leader": "Palpatine_SEC",
-        "base": "DV"
-      },
-      "count": 3,
-      "percentage": 2.1739130434782608
+      "count": 5,
+      "percentage": 2.380952380952381
     },
     {
       "combination": {
         "leader": "Iden",
         "base": "DV"
       },
-      "count": 3,
-      "percentage": 2.1739130434782608
+      "count": 5,
+      "percentage": 2.380952380952381
     },
     {
       "combination": {
-        "leader": "Thrawn_JTL",
-        "base": "DV"
+        "leader": "Talzin",
+        "base": "Red_Force"
       },
-      "count": 3,
-      "percentage": 2.1739130434782608
+      "count": 5,
+      "percentage": 2.380952380952381
     }
   ],
   "aspectDistribution": {
-    "Aggression": 65,
-    "Command": 97,
-    "Cunning": 28,
-    "Heroism": 68,
-    "Vigilance": 72,
-    "Villainy": 70
+    "Aggression": 98,
+    "Command": 149,
+    "Cunning": 41,
+    "Heroism": 100,
+    "None": 1,
+    "Vigilance": 112,
+    "Villainy": 110
   }
 }
