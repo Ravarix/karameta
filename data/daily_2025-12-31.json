@@ -132,7 +132,7 @@
     "Han_SOR/Green_30": 129,
     "Han_SOR/Red_30": 3,
     "Han_SOR/TT": 14,
-    "Han_SOR/Yellow_30": 41,
+    "Han_SOR/Yellow_30": 42,
     "Hera/Country": 5,
     "Hera/ECL": 3,
     "Hera/Green_30": 1,
@@ -147,7 +147,7 @@
     "Iden/Yellow_30": 6,
     "Jabba_SEC/Blue_Force": 13,
     "Jabba_SEC/DV": 30,
-    "Jabba_SEC/ECL": 22,
+    "Jabba_SEC/ECL": 23,
     "Jabba_SEC/Green_30": 4,
     "Jabba_SEC/Yellow_30": 3,
     "Jabba_SEC/Yellow_Force": 2,
@@ -267,7 +267,7 @@
     "Palpatine_SOR/DV": 33,
     "Palpatine_SOR/ECL": 3,
     "Palpatine_SOR/Green_30": 2,
-    "Palpatine_SOR/TT": 42,
+    "Palpatine_SOR/TT": 43,
     "Palpatine_SOR/Yellow_30": 93,
     "Palpatine_TWI/Blue_30": 9,
     "Palpatine_TWI/Blue_Force": 5,
@@ -276,7 +276,7 @@
     "Phasma/DV": 10,
     "Phasma/ECL": 2,
     "Phasma/Green_30": 80,
-    "Piett/Blue_30": 81,
+    "Piett/Blue_30": 82,
     "Piett/Colossus": 13,
     "Piett/DV": 18,
     "Piett/ECL": 1,
@@ -360,7 +360,7 @@
     "Sly/Red_30": 7,
     "Sly/Yellow_30": 5,
     "Sly/Yellow_Force": 1,
-    "Snoke/Blue_30": 24,
+    "Snoke/Blue_30": 25,
     "Snoke/Blue_Force": 11,
     "Snoke/Colossus": 3,
     "Snoke/DV": 2,
@@ -414,7 +414,7 @@
     "Wedge/Yellow_30": 20,
     "Yoda/Blue_30": 2,
     "Yoda/Blue_Force": 5,
-    "Yoda/DV": 304,
+    "Yoda/DV": 305,
     "Yoda/ECL": 4,
     "Yoda/Green_30": 3,
     "Yoda/Green_Force": 48,
@@ -429,15 +429,15 @@
     "Yularen/Red_30": 11
   },
   "date": "2025-12-31",
-  "totalGames": 6182,
+  "totalGames": 6188,
   "topCombinations": [
     {
       "combination": {
         "leader": "Yoda",
         "base": "DV"
       },
-      "count": 304,
-      "percentage": 4.917502426399223
+      "count": 305,
+      "percentage": 4.928894634776988
     },
     {
       "combination": {
@@ -445,7 +445,7 @@
         "base": "Red_30"
       },
       "count": 284,
-      "percentage": 4.59398252992559
+      "percentage": 4.589528118939883
     },
     {
       "combination": {
@@ -453,7 +453,7 @@
         "base": "Blue_Force"
       },
       "count": 226,
-      "percentage": 3.6557748301520547
+      "percentage": 3.6522301228183585
     },
     {
       "combination": {
@@ -461,7 +461,7 @@
         "base": "ECL"
       },
       "count": 203,
-      "percentage": 3.2837269492073764
+      "percentage": 3.2805429864253397
     },
     {
       "combination": {
@@ -469,7 +469,7 @@
         "base": "DV"
       },
       "count": 155,
-      "percentage": 2.5072791976706568
+      "percentage": 2.504848093083387
     },
     {
       "combination": {
@@ -477,15 +477,7 @@
         "base": "Yellow_30"
       },
       "count": 142,
-      "percentage": 2.296991264962795
-    },
-    {
-      "combination": {
-        "leader": "Anakin_TWI",
-        "base": "DV"
-      },
-      "count": 139,
-      "percentage": 2.2484632804917504
+      "percentage": 2.2947640594699417
     },
     {
       "combination": {
@@ -493,7 +485,15 @@
         "base": "DV"
       },
       "count": 139,
-      "percentage": 2.2484632804917504
+      "percentage": 2.24628312863607
+    },
+    {
+      "combination": {
+        "leader": "Anakin_TWI",
+        "base": "DV"
+      },
+      "count": 139,
+      "percentage": 2.24628312863607
     },
     {
       "combination": {
@@ -501,7 +501,7 @@
         "base": "Yellow_30"
       },
       "count": 137,
-      "percentage": 2.216111290844387
+      "percentage": 2.2139625080801553
     },
     {
       "combination": {
@@ -509,16 +509,16 @@
         "base": "DV"
       },
       "count": 133,
-      "percentage": 2.15140731154966
+      "percentage": 2.1493212669683257
     }
   ],
   "aspectDistribution": {
-    "Aggression": 3135,
-    "Command": 3893,
-    "Cunning": 1937,
-    "Heroism": 2979,
+    "Aggression": 3136,
+    "Command": 3898,
+    "Cunning": 1938,
+    "Heroism": 2981,
     "None": 19,
-    "Vigilance": 2757,
-    "Villainy": 3211
+    "Vigilance": 2761,
+    "Villainy": 3215
   }
 }
