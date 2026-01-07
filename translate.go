@@ -1,202 +1,48 @@
 package main
 
+import (
+	_ "embed"
+	"encoding/json"
+	"log"
+)
+
+type CardData struct {
+	Leaders []LeaderInfo `json:"leaders"`
+	Bases   []BaseInfo   `json:"bases"`
+}
+
 type LeaderInfo struct {
-	Name    string
-	Aspects []string
+	ID      string   `json:"id"`
+	Name    string   `json:"name"`
+	Aspects []string `json:"aspects"`
 }
 
 type BaseInfo struct {
-	Name   string
-	Aspect string
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Aspect string `json:"aspect"`
 }
 
-var baseMap = map[string]BaseInfo{
-	"SOR_020": {Name: "Blue_30", Aspect: "Vigilance"},
-	"SOR_021": {Name: "Blue_30", Aspect: "Vigilance"},
-	"SHD_019": {Name: "Blue_30", Aspect: "Vigilance"},
-	"SHD_020": {Name: "Blue_30", Aspect: "Vigilance"},
-	"TWI_020": {Name: "Blue_30", Aspect: "Vigilance"},
-	"TWI_021": {Name: "Blue_30", Aspect: "Vigilance"},
-	"JTL_019": {Name: "Blue_30", Aspect: "Vigilance"},
-	"JTL_020": {Name: "Blue_30", Aspect: "Vigilance"},
-	"SEC_019": {Name: "Blue_30", Aspect: "Vigilance"},
-	"SEC_020": {Name: "Blue_30", Aspect: "Vigilance"},
+//go:embed docs/cards.json
+var cardData []byte
 
-	"SOR_023": {Name: "Green_30", Aspect: "Command"},
-	"SOR_024": {Name: "Green_30", Aspect: "Command"},
-	"SHD_021": {Name: "Green_30", Aspect: "Command"},
-	"SHD_022": {Name: "Green_30", Aspect: "Command"},
-	"TWI_023": {Name: "Green_30", Aspect: "Command"},
-	"TWI_024": {Name: "Green_30", Aspect: "Command"},
-	"JTL_022": {Name: "Green_30", Aspect: "Command"},
-	"JTL_023": {Name: "Green_30", Aspect: "Command"},
-	"SEC_021": {Name: "Green_30", Aspect: "Command"},
-	"SEC_022": {Name: "Green_30", Aspect: "Command"},
+var cardInfo CardData
 
-	"SOR_026": {Name: "Red_30", Aspect: "Aggression"},
-	"SOR_027": {Name: "Red_30", Aspect: "Aggression"},
-	"SHD_023": {Name: "Red_30", Aspect: "Aggression"},
-	"SHD_024": {Name: "Red_30", Aspect: "Aggression"},
-	"TWI_026": {Name: "Red_30", Aspect: "Aggression"},
-	"TWI_027": {Name: "Red_30", Aspect: "Aggression"},
-	"JTL_026": {Name: "Red_30", Aspect: "Aggression"},
-	"JTL_027": {Name: "Red_30", Aspect: "Aggression"},
-	"SEC_023": {Name: "Red_30", Aspect: "Aggression"},
-	"SEC_024": {Name: "Red_30", Aspect: "Aggression"},
+func init() {
+	err := json.Unmarshal(cardData, &cardInfo)
+	if err != nil {
+		log.Fatalf("error unmarshalling JSON: %v", err)
+	}
 
-	"SOR_029": {Name: "Yellow_30", Aspect: "Cunning"},
-	"SOR_030": {Name: "Yellow_30", Aspect: "Cunning"},
-	"SHD_025": {Name: "Yellow_30", Aspect: "Cunning"},
-	"SHD_026": {Name: "Yellow_30", Aspect: "Cunning"},
-	"TWI_029": {Name: "Yellow_30", Aspect: "Cunning"},
-	"TWI_030": {Name: "Yellow_30", Aspect: "Cunning"},
-	"JTL_029": {Name: "Yellow_30", Aspect: "Cunning"},
-	"JTL_030": {Name: "Yellow_30", Aspect: "Cunning"},
-	"SEC_025": {Name: "Yellow_30", Aspect: "Cunning"},
-	"SEC_026": {Name: "Yellow_30", Aspect: "Cunning"},
+	for _, b := range cardInfo.Bases {
+		baseMap[b.ID] = b
+	}
 
-	"LOF_020": {Name: "Blue_Force", Aspect: "Vigilance"},
-	"LOF_021": {Name: "Blue_Force", Aspect: "Vigilance"},
-	"LOF_023": {Name: "Green_Force", Aspect: "Command"},
-	"LOF_024": {Name: "Green_Force", Aspect: "Command"},
-	"LOF_026": {Name: "Red_Force", Aspect: "Aggression"},
-	"LOF_027": {Name: "Red_Force", Aspect: "Aggression"},
-	"LOF_029": {Name: "Yellow_Force", Aspect: "Cunning"},
-	"LOF_030": {Name: "Yellow_Force", Aspect: "Cunning"},
-
-	"SOR_019": {Name: "Security", Aspect: "Vigilance"},
-	"SOR_022": {Name: "ECL", Aspect: "Command"},
-	"SOR_025": {Name: "TT", Aspect: "Aggression"},
-	"SOR_028": {Name: "Jedha", Aspect: "Cunning"},
-
-	"TWI_019": {Name: "Pau", Aspect: "Vigilance"},
-	"TWI_022": {Name: "Droid", Aspect: "Cunning"},
-	"TWI_025": {Name: "Shadow", Aspect: "Aggression"},
-	"TWI_028": {Name: "Petranaki", Aspect: "Cunning"},
-
-	"JTL_021": {Name: "Colossus", Aspect: "Vigilance"},
-	"JTL_024": {Name: "DV", Aspect: "Command"},
-	"JTL_025": {Name: "Thermal", Aspect: "Aggression"},
-	"JTL_028": {Name: "Nabat", Aspect: "Cunning"},
-	"JTL_031": {Name: "Country", Aspect: ""},
-
-	"LOF_019": {Name: "Vergence", Aspect: "Vigilance"},
-	"LOF_022": {Name: "Monastery", Aspect: "Command"},
-	"LOF_025": {Name: "Destruction", Aspect: "Aggression"},
-	"LOF_028": {Name: "Tomb", Aspect: "Cunning"},
+	for _, l := range cardInfo.Leaders {
+		leaderMap[l.ID] = l
+	}
 }
 
-var leaderMap = map[string]LeaderInfo{
-	"SOR_001": {Name: "Krennic", Aspects: []string{"Vigilance", "Villainy"}},
-	"SOR_002": {Name: "Iden", Aspects: []string{"Vigilance", "Villainy"}},
-	"SOR_003": {Name: "Chewbacca", Aspects: []string{"Vigilance", "Heroism"}},
-	"SOR_004": {Name: "Chirrut", Aspects: []string{"Vigilance", "Heroism"}},
-	"SOR_005": {Name: "Luke_SOR", Aspects: []string{"Vigilance", "Heroism"}},
-	"SOR_006": {Name: "Palpatine_SOR", Aspects: []string{"Command", "Villainy"}},
-	"SOR_007": {Name: "Tarkin", Aspects: []string{"Command", "Villainy"}},
-	"SOR_008": {Name: "Hera", Aspects: []string{"Command", "Heroism"}},
-	"SOR_009": {Name: "Leia_SOR", Aspects: []string{"Command", "Heroism"}},
-	"SOR_010": {Name: "Vader_SOR", Aspects: []string{"Aggression", "Villainy"}},
-	"SOR_011": {Name: "GI_SOR", Aspects: []string{"Aggression", "Villainy"}},
-	"SOR_012": {Name: "IG", Aspects: []string{"Aggression", "Villainy"}},
-	"SOR_013": {Name: "Cassian", Aspects: []string{"Aggression", "Heroism"}},
-	"SOR_014": {Name: "Sabine", Aspects: []string{"Aggression", "Heroism"}},
-	"SOR_015": {Name: "Boba_SOR", Aspects: []string{"Cunning", "Villainy"}},
-	"SOR_016": {Name: "Thrawn_SOR", Aspects: []string{"Cunning", "Villainy"}},
-	"SOR_017": {Name: "Han_SOR", Aspects: []string{"Cunning", "Heroism"}},
-	"SOR_018": {Name: "Jyn", Aspects: []string{"Cunning", "Heroism"}},
-	"SHD_001": {Name: "Gar", Aspects: []string{"Vigilance", "Villainy"}},
-	"SHD_002": {Name: "Qi'ra", Aspects: []string{"Vigilance", "Villainy"}},
-	"SHD_003": {Name: "Finn", Aspects: []string{"Vigilance", "Heroism"}},
-	"SHD_004": {Name: "Rey_SHD", Aspects: []string{"Vigilance", "Heroism"}},
-	"SHD_005": {Name: "Hondo", Aspects: []string{"Command", "Villainy"}},
-	"SHD_006": {Name: "Jabba_SHD", Aspects: []string{"Command", "Villainy"}},
-	"SHD_007": {Name: "Gideon", Aspects: []string{"Command", "Villainy"}},
-	"SHD_008": {Name: "Boba_SHD", Aspects: []string{"Command", "Heroism"}},
-	"SHD_009": {Name: "Hunter", Aspects: []string{"Command", "Heroism"}},
-	"SHD_010": {Name: "Bossk", Aspects: []string{"Aggression", "Villainy"}},
-	"SHD_011": {Name: "Kylo", Aspects: []string{"Aggression", "Villainy"}},
-	"SHD_012": {Name: "Bo-Katan", Aspects: []string{"Aggression", "Heroism"}},
-	"SHD_013": {Name: "Han_SHD", Aspects: []string{"Aggression", "Heroism"}},
-	"SHD_014": {Name: "Cad", Aspects: []string{"Cunning", "Villainy"}},
-	"SHD_015": {Name: "Aphra", Aspects: []string{"Cunning", "Villainy"}},
-	"SHD_016": {Name: "Fennec", Aspects: []string{"Cunning", "Heroism"}},
-	"SHD_017": {Name: "Lando", Aspects: []string{"Cunning", "Heroism"}},
-	"SHD_018": {Name: "Mandalorian", Aspects: []string{"Cunning", "Heroism"}},
-	"TWI_001": {Name: "Nala", Aspects: []string{"Vigilance", "Villainy"}},
-	"TWI_002": {Name: "Nute", Aspects: []string{"Vigilance", "Villainy"}},
-	"TWI_003": {Name: "Obi_TWI", Aspects: []string{"Vigilance", "Heroism"}},
-	"TWI_004": {Name: "Yoda", Aspects: []string{"Vigilance", "Heroism"}},
-	"TWI_005": {Name: "Dooku", Aspects: []string{"Command", "Villainy"}},
-	"TWI_006": {Name: "Wat", Aspects: []string{"Command", "Villainy"}},
-	"TWI_007": {Name: "Rex", Aspects: []string{"Command", "Heroism"}},
-	"TWI_008": {Name: "Padmé_TWI", Aspects: []string{"Command", "Heroism"}},
-	"TWI_009": {Name: "Maul_TWI", Aspects: []string{"Aggression", "Villainy"}},
-	"TWI_010": {Name: "Vizsla", Aspects: []string{"Aggression", "Villainy"}},
-	"TWI_011": {Name: "Ahsoka_TWI", Aspects: []string{"Aggression", "Heroism"}},
-	"TWI_012": {Name: "Anakin_TWI", Aspects: []string{"Aggression", "Heroism"}},
-	"TWI_013": {Name: "Mace", Aspects: []string{"Aggression", "Heroism"}},
-	"TWI_014": {Name: "Asajj", Aspects: []string{"Cunning", "Villainy"}},
-	"TWI_015": {Name: "Grievous", Aspects: []string{"Cunning", "Villainy"}},
-	"TWI_016": {Name: "Jango", Aspects: []string{"Cunning", "Villainy"}},
-	"TWI_017": {Name: "Palpatine_TWI", Aspects: []string{"Cunning", "Heroism", "Villainy"}},
-	"TWI_018": {Name: "Quinlan", Aspects: []string{"Cunning", "Heroism"}},
-	"JTL_001": {Name: "Asajj", Aspects: []string{"Vigilance", "Villainy"}},
-	"JTL_002": {Name: "Thrawn_JTL", Aspects: []string{"Vigilance", "Villainy"}},
-	"JTL_003": {Name: "Lando", Aspects: []string{"Vigilance", "Heroism"}},
-	"JTL_004": {Name: "Rose", Aspects: []string{"Vigilance", "Heroism"}},
-	"JTL_005": {Name: "Piett", Aspects: []string{"Command", "Villainy"}},
-	"JTL_006": {Name: "Vader_JTL", Aspects: []string{"Command", "Villainy"}},
-	"JTL_007": {Name: "Holdo", Aspects: []string{"Command", "Heroism"}},
-	"JTL_008": {Name: "Wedge", Aspects: []string{"Command", "Heroism"}},
-	"JTL_009": {Name: "Boba_JTL", Aspects: []string{"Aggression", "Villainy"}},
-	"JTL_010": {Name: "Phasma", Aspects: []string{"Aggression", "Villainy"}},
-	"JTL_011": {Name: "Vonreg", Aspects: []string{"Aggression", "Villainy"}},
-	"JTL_012": {Name: "Luke_JTL", Aspects: []string{"Aggression", "Heroism"}},
-	"JTL_013": {Name: "Poe", Aspects: []string{"Aggression", "Heroism"}},
-	"JTL_014": {Name: "Trench", Aspects: []string{"Cunning", "Villainy"}},
-	"JTL_015": {Name: "Rio", Aspects: []string{"Cunning", "Villainy"}},
-	"JTL_016": {Name: "Ackbar", Aspects: []string{"Cunning", "Heroism"}},
-	"JTL_017": {Name: "Han_JTL", Aspects: []string{"Cunning", "Heroism"}},
-	"JTL_018": {Name: "Kazuda", Aspects: []string{"Cunning", "Heroism"}},
-	"LOF_001": {Name: "Kylo", Aspects: []string{"Vigilance", "Villainy"}},
-	"LOF_002": {Name: "Talzin", Aspects: []string{"Vigilance", "Villainy"}},
-	"LOF_003": {Name: "Ahsoka_LOF", Aspects: []string{"Vigilance", "Heroism"}},
-	"LOF_004": {Name: "Kanan", Aspects: []string{"Vigilance", "Heroism"}},
-	"LOF_005": {Name: "Morgan", Aspects: []string{"Command", "Villainy"}},
-	"LOF_006": {Name: "Snoke", Aspects: []string{"Command", "Villainy"}},
-	"LOF_007": {Name: "Avar", Aspects: []string{"Command", "Heroism"}},
-	"LOF_008": {Name: "Obi_LOF", Aspects: []string{"Command", "Heroism"}},
-	"LOF_009": {Name: "Maul", Aspects: []string{"Aggression", "Villainy"}},
-	"LOF_010": {Name: "Sister", Aspects: []string{"Aggression", "Villainy"}},
-	"LOF_011": {Name: "Kit", Aspects: []string{"Aggression", "Heroism"}},
-	"LOF_012": {Name: "Rey_LOF", Aspects: []string{"Aggression", "Heroism"}},
-	"LOF_013": {Name: "Barriss", Aspects: []string{"Cunning", "Villainy"}},
-	"LOF_014": {Name: "GI_LOF", Aspects: []string{"Cunning", "Villainy"}},
-	"LOF_015": {Name: "Cal", Aspects: []string{"Cunning", "Heroism"}},
-	"LOF_016": {Name: "Qui", Aspects: []string{"Cunning", "Heroism"}},
-	"LOF_017": {Name: "Revan", Aspects: []string{"Villainy"}},
-	"LOF_018": {Name: "Anakin_LOF", Aspects: []string{"Heroism"}},
-	"IBH_001": {Name: "Leia_IBH", Aspects: []string{"Command", "Heroism"}},
-	"IBH_053": {Name: "Vader_IBH", Aspects: []string{"Aggression", "Villainy"}},
-	"SEC_001": {Name: "Palpatine_SEC", Aspects: []string{"Vigilance", "Villainy"}},
-	"SEC_002": {Name: "Jabba_SEC", Aspects: []string{"Vigilance", "Villainy"}},
-	"SEC_003": {Name: "Lama", Aspects: []string{"Vigilance", "Villainy"}},
-	"SEC_004": {Name: "Leia_SEC", Aspects: []string{"Vigilance", "Heroism"}},
-	"SEC_005": {Name: "Satine", Aspects: []string{"Vigilance", "Heroism"}},
-	"SEC_006": {Name: "Yularen", Aspects: []string{"Command", "Villainy"}},
-	"SEC_007": {Name: "Dryden", Aspects: []string{"Command", "Villainy"}},
-	"SEC_008": {Name: "Bail", Aspects: []string{"Command", "Heroism"}},
-	"SEC_009": {Name: "Mothma", Aspects: []string{"Command", "Heroism"}},
-	"SEC_010": {Name: "Dedra", Aspects: []string{"Aggression", "Villainy"}},
-	"SEC_011": {Name: "Pryce", Aspects: []string{"Aggression", "Villainy"}},
-	"SEC_012": {Name: "Cassian", Aspects: []string{"Aggression", "Heroism"}},
-	"SEC_013": {Name: "Luthen", Aspects: []string{"Aggression", "Heroism"}},
-	"SEC_014": {Name: "Sly", Aspects: []string{"Cunning", "Villainy"}},
-	"SEC_015": {Name: "C-3PO", Aspects: []string{"Cunning", "Heroism"}},
-	"SEC_016": {Name: "Padmé", Aspects: []string{"Cunning", "Heroism"}},
-	"SEC_017": {Name: "Sabé", Aspects: []string{"Cunning", "Heroism"}},
-	"SEC_018": {Name: "DJ", Aspects: []string{"Cunning", "Cunning"}},
-	"LAW_010": {Name: "Leia_LAW", Aspects: []string{"Command", "Heroism"}},
-	"LAW_015": {Name: "Jabba_LAW", Aspects: []string{"Cunning", "Villainy"}},
-}
+var baseMap = map[string]BaseInfo{}
+
+var leaderMap = map[string]LeaderInfo{}

@@ -333,8 +333,31 @@
             current: ['live'],
             daily: []
         };
+        let cardData = {};
+        let leaderAspects = {};
+        let baseAspects = {}
         let currentType = 'current';
         const ghRoot = 'https://raw.githubusercontent.com/Ravarix/karameta/refs/heads/main/'
+
+        async function loadCards() {
+            try {
+                const response = await fetch('/cards.json');
+                if (response.ok) {
+                    cardData = await response.json();
+                    for (const leader of cardData.leaders) {
+                        leaderAspects[leader.name] = leader.aspects;
+                    }
+
+                    for (const base of cardData.bases) {
+                        baseAspects[base.name] = base.aspect;
+                    }
+                } else {
+                    console.warn('Failed to load cardData.json');
+                }
+            } catch (error) {
+                console.warn('Failed to load cardData.json: ' + error.message);
+            }
+        }
 
         async function loadAvailableDates() {
             try {
@@ -651,6 +674,7 @@
         });
 
         // Load live data immediately, then load index in background
+        loadCards();
         loadData('current', 'live');
         loadAvailableDates();
     </script>

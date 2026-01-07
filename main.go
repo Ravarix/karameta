@@ -53,7 +53,6 @@ type PlayRateStats struct {
 type CombinationStats struct {
 	Count       int            `json:"count"`
 	DailyCounts map[string]int `json:"dailyCounts"`
-	Aspects     []string       `json:"aspects"`
 }
 
 // playRateStatsJSON is a JSON-friendly version of PlayRateStats
@@ -100,11 +99,6 @@ func (p *PlayRateStats) UnmarshalJSON(data []byte) error {
 				Base:   parts[1],
 			}
 
-			// Ensure aspects array is not nil
-			if stats.Aspects == nil {
-				stats.Aspects = []string{}
-			}
-
 			p.Stats[combo] = stats
 		}
 	}
@@ -119,7 +113,7 @@ func (b Base) Info() BaseInfo {
 	if info, ok := baseMap[b.ID]; ok {
 		return info
 	}
-	return BaseInfo{b.ID, "Unknown"}
+	return BaseInfo{b.ID, b.ID, "Unknown"}
 }
 
 func (l Leader) Info() LeaderInfo {
@@ -127,7 +121,7 @@ func (l Leader) Info() LeaderInfo {
 		return info
 	}
 	log.Printf("Warning: unknown leader ID: %s", l.ID)
-	return LeaderInfo{l.ID, []string{"Unknown"}}
+	return LeaderInfo{l.ID, l.ID, []string{"Unknown"}}
 }
 
 // splitLeaderBase splits a "leader/base" string into parts
@@ -142,11 +136,10 @@ func splitLeaderBase(s string) []string {
 }
 
 type DailySummary struct {
-	Date               string                        `json:"date"`
-	TotalGames         int                           `json:"totalGames"`
-	Combinations       map[LeaderBaseCombination]int `json:"-"`
-	TopCombos          []TopCombination              `json:"topCombinations"`
-	AspectDistribution map[string]int                `json:"aspectDistribution"`
+	Date         string                        `json:"date"`
+	TotalGames   int                           `json:"totalGames"`
+	Combinations map[LeaderBaseCombination]int `json:"-"`
+	TopCombos    []TopCombination              `json:"topCombinations"`
 }
 
 type TopCombination struct {
@@ -223,10 +216,6 @@ func NewScraper(config Config) (*Scraper, error) {
 	if err != nil {
 		log.Printf("No existing stats found, starting fresh: %v", err)
 		stats = NewPlayRateStats()
-	} else {
-		// Backfill aspects for any existing data that doesn't have them
-		stats.BackfillAspects()
-		log.Println("Backfilled aspects for existing combination stats")
 	}
 
 	return &Scraper{
@@ -375,48 +364,6 @@ func NewPlayRateStats() *PlayRateStats {
 	}
 }
 
-// BackfillAspects updates any combination stats that don't have aspects populated
-func (p *PlayRateStats) BackfillAspects() {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	for combo, stats := range p.Stats {
-		if stats.Aspects == nil || len(stats.Aspects) == 0 {
-			// Reconstruct aspects from combo
-			aspects := make(map[string]struct{})
-
-			// Try to get leader info
-			for _, leaderInfo := range leaderMap {
-				if leaderInfo.Name == combo.Leader {
-					for _, aspect := range leaderInfo.Aspects {
-						if aspect != "" && aspect != "Unknown" {
-							aspects[aspect] = struct{}{}
-						}
-					}
-					break
-				}
-			}
-
-			// Try to get base info
-			for _, baseInfo := range baseMap {
-				if baseInfo.Name == combo.Base {
-					if baseInfo.Aspect != "" && baseInfo.Aspect != "Unknown" {
-						aspects[baseInfo.Aspect] = struct{}{}
-					}
-					break
-				}
-			}
-
-			// Convert to array
-			aspectArray := make([]string, 0, len(aspects))
-			for aspect := range aspects {
-				aspectArray = append(aspectArray, aspect)
-			}
-			stats.Aspects = aspectArray
-		}
-	}
-}
-
 func (p *PlayRateStats) AddGame(game Game) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -457,12 +404,8 @@ func (p *PlayRateStats) AddGame(game Game) {
 		if !exists {
 			stats = &CombinationStats{
 				DailyCounts: make(map[string]int),
-				Aspects:     aspectArray,
 			}
 			p.Stats[comboKey] = stats
-		} else if stats.Aspects == nil || len(stats.Aspects) == 0 {
-			// Backfill aspects for existing stats that don't have them
-			stats.Aspects = aspectArray
 		}
 
 		stats.Count++
@@ -486,11 +429,10 @@ func (p *PlayRateStats) GetDailySummary(date time.Time) DailySummary {
 	}
 
 	return DailySummary{
-		Date:               dayKey,
-		TotalGames:         totalGames,
-		Combinations:       combinations,
-		TopCombos:          getTopCombinations(combinations, totalGames, 10),
-		AspectDistribution: calculateAspectDistribution(p.Stats, combinations),
+		Date:         dayKey,
+		TotalGames:   totalGames,
+		Combinations: combinations,
+		TopCombos:    getTopCombinations(combinations, totalGames, 10),
 	}
 }
 
@@ -525,20 +467,6 @@ func LoadStats(path string) (*PlayRateStats, error) {
 	}
 
 	return &stats, nil
-}
-
-func calculateAspectDistribution(stats map[LeaderBaseCombination]*CombinationStats, dayCounts map[LeaderBaseCombination]int) map[string]int {
-	aspectCounts := make(map[string]int)
-
-	for combo, count := range dayCounts {
-		if comboStats, ok := stats[combo]; ok && comboStats.Aspects != nil {
-			for _, aspect := range comboStats.Aspects {
-				aspectCounts[aspect] += count
-			}
-		}
-	}
-
-	return aspectCounts
 }
 
 func getTopCombinations(combinations map[LeaderBaseCombination]int, totalGames int, limit int) []TopCombination {
