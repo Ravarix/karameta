@@ -341,7 +341,7 @@
 
         async function loadCards() {
             try {
-                const response = await fetch('/cards.json');
+                const response = await fetch('cards.json');
                 if (response.ok) {
                     cardData = await response.json();
                     for (const leader of cardData.leaders) {
@@ -554,8 +554,25 @@
 
             const alignments = ["Heroism", "Villainy"];
 
-            const aspectArray = Object.entries(data.aspectDistribution || {})
+            let aspectDistribution = {};
+            for (let comboKey in combinations) {
+                let [leader, base] = comboKey.split('/');
+                let aspects = new Set();
+                if (leaderAspects[leader]) {
+                    leaderAspects[leader].forEach(aspects.add, aspects);
+                }
+                if (baseAspects[base]) {
+                    aspects.add(baseAspects[base]);
+                }
+                for (let aspect of aspects) {
+                    if (!aspectDistribution[aspect]) aspectDistribution[aspect] = 0;
+                    aspectDistribution[aspect] += combinations[comboKey];
+                }
+            }
+
+            const aspectArray = Object.entries(aspectDistribution)
                 .filter(([name]) => !alignments.includes(name) && name !== "None")
+                .sort()
                 .map(([name, count]) => ({
                     name: name,
                     count: count
@@ -563,8 +580,9 @@
             const aspectLabels = aspectArray.map(aspect => aspect.name);
             const aspectValues = aspectArray.map(aspect => aspect.count);
 
-            const alignmentArray = Object.entries(data.aspectDistribution || {})
+            const alignmentArray = Object.entries(aspectDistribution)
                 .filter(([name]) => alignments.includes(name))
+                .sort()
                 .map(([name, count]) => ({
                     name: name,
                     count: count
