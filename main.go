@@ -13,8 +13,8 @@ import (
 
 const (
 	DefaultAPIURL        = "https://api.karabast.net/api/ongoing-games"
-	DefaultBloomFilePath = "./bloom_filter.dat"
-	DefaultStatsFilePath = "./stats.json"
+	DefaultBloomFilePath = "./data/bloom_filter.dat"
+	DefaultStatsFilePath = "./data/stats.json"
 	DefaultExportDir     = "./data"
 )
 
@@ -135,41 +135,9 @@ func splitLeaderBase(s string) []string {
 	return []string{s}
 }
 
-type DailySummary struct {
-	Date         string                        `json:"date"`
-	TotalGames   int                           `json:"totalGames"`
-	Combinations map[LeaderBaseCombination]int `json:"-"`
-	TopCombos    []TopCombination              `json:"topCombinations"`
-}
-
-type TopCombination struct {
-	Combination LeaderBaseCombination `json:"combination"`
-	Count       int                   `json:"count"`
-	Percentage  float64               `json:"percentage"`
-}
-
 func getNormalizedTime() time.Time {
 	pacific := time.FixedZone("PST", -8*60*60)
 	return time.Now().UTC().In(pacific)
-}
-
-// MarshalJSON implements custom JSON marshaling for DailySummary
-func (d DailySummary) MarshalJSON() ([]byte, error) {
-	// Convert map with struct keys to map with string keys
-	combinations := make(map[string]int)
-	for combo, count := range d.Combinations {
-		key := fmt.Sprintf("%s/%s", combo.Leader, combo.Base)
-		combinations[key] = count
-	}
-
-	type Alias DailySummary
-	return json.Marshal(&struct {
-		Combinations map[string]int `json:"combinations"`
-		*Alias
-	}{
-		Combinations: combinations,
-		Alias:        (*Alias)(&d),
-	})
 }
 
 type Config struct {
@@ -276,14 +244,6 @@ func (s *Scraper) Scrape(ctx context.Context) error {
 	return nil
 }
 
-func (s *Scraper) ExportDailySummary(date time.Time) error {
-	summary := s.stats.GetDailySummary(date)
-	if err := s.exportSummary(summary, fmt.Sprintf("daily_%s.json", date.Format("2006-01-02"))); err != nil {
-		return err
-	}
-	return s.exportSummary(summary, "current.json")
-}
-
 func (s *Scraper) exportSummary(data interface{}, filename string) error {
 	if err := os.MkdirAll(s.config.ExportDir, 0755); err != nil {
 		return fmt.Errorf("failed to create export directory: %w", err)
@@ -304,57 +264,7 @@ func (s *Scraper) exportSummary(data interface{}, filename string) error {
 
 	log.Printf("Exported summary to %s", path)
 
-	// Automatically update index after any export (except index.json itself)
-	if filename != "index.json" {
-		if err := s.updateIndex(); err != nil {
-			log.Printf("Warning: failed to update index: %v", err)
-			// Don't fail the export if index update fails
-		}
-	}
-
 	return nil
-}
-
-func (s *Scraper) updateIndex() error {
-	files, err := os.ReadDir(s.config.ExportDir)
-	if err != nil {
-		return fmt.Errorf("failed to read export directory: %w", err)
-	}
-
-	dailyDates := []string{}
-
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		name := file.Name()
-
-		// Match daily_YYYY-MM-DD.json
-		if len(name) > 6 && name[:6] == "daily_" && name[len(name)-5:] == ".json" {
-			date := name[6 : len(name)-5]
-			dailyDates = append(dailyDates, date)
-		}
-	}
-
-	// Sort dates in descending order (newest first)
-	sortDatesDescending(dailyDates)
-
-	index := map[string]interface{}{
-		"daily": dailyDates,
-	}
-
-	return s.exportSummary(index, "index.json")
-}
-
-func sortDatesDescending(dates []string) {
-	// Simple bubble sort in descending order
-	for i := 0; i < len(dates); i++ {
-		for j := i + 1; j < len(dates); j++ {
-			if dates[i] < dates[j] {
-				dates[i], dates[j] = dates[j], dates[i]
-			}
-		}
-	}
 }
 
 func NewPlayRateStats() *PlayRateStats {
@@ -413,29 +323,6 @@ func (p *PlayRateStats) AddGame(game Game) {
 	}
 }
 
-func (p *PlayRateStats) GetDailySummary(date time.Time) DailySummary {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	dayKey := date.Format("2006-01-02")
-	combinations := make(map[LeaderBaseCombination]int)
-	totalGames := 0
-
-	for combo, stats := range p.Stats {
-		if count, ok := stats.DailyCounts[dayKey]; ok {
-			combinations[combo] = count
-			totalGames += count
-		}
-	}
-
-	return DailySummary{
-		Date:         dayKey,
-		TotalGames:   totalGames,
-		Combinations: combinations,
-		TopCombos:    getTopCombinations(combinations, totalGames, 10),
-	}
-}
-
 func (p *PlayRateStats) Save(path string) error {
 	file, err := os.Create(path)
 	if err != nil {
@@ -469,37 +356,6 @@ func LoadStats(path string) (*PlayRateStats, error) {
 	return &stats, nil
 }
 
-func getTopCombinations(combinations map[LeaderBaseCombination]int, totalGames int, limit int) []TopCombination {
-	var topCombos []TopCombination
-
-	for combo, count := range combinations {
-		percentage := 0.0
-		if totalGames > 0 {
-			percentage = float64(count) / float64(totalGames) * 100
-		}
-		topCombos = append(topCombos, TopCombination{
-			Combination: combo,
-			Count:       count,
-			Percentage:  percentage,
-		})
-	}
-
-	// Simple bubble sort for top combinations
-	for i := 0; i < len(topCombos); i++ {
-		for j := i + 1; j < len(topCombos); j++ {
-			if topCombos[j].Count > topCombos[i].Count {
-				topCombos[i], topCombos[j] = topCombos[j], topCombos[i]
-			}
-		}
-	}
-
-	if len(topCombos) > limit {
-		topCombos = topCombos[:limit]
-	}
-
-	return topCombos
-}
-
 func main() {
 	log.Println("Starting Game Scraper...")
 
@@ -519,15 +375,7 @@ func main() {
 			log.Fatalf("Scrape failed: %v", err)
 		}
 		log.Println("Scrape completed successfully")
-
-	case "export-current":
-		log.Println("Mode: Current Day Export")
-		today := getNormalizedTime()
-		if err := scraper.ExportDailySummary(today); err != nil {
-			log.Fatalf("Current export failed: %v", err)
-		}
-		log.Printf("Current day export completed for %s (index updated)", today.Format("2006-01-02"))
 	default:
-		log.Fatalf("Unknown mode: %s. Use 'scrape', 'export-current', or 'export-daily'", config.Mode)
+		log.Fatalf("Unknown mode: %s. Use 'scrape'", config.Mode)
 	}
 }

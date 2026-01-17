@@ -23,7 +23,7 @@ type BaseInfo struct {
 	Aspect string `json:"aspect"`
 }
 
-//go:embed docs/cards.json
+//go:embed data/cards.json
 var cardData []byte
 
 var cardInfo CardData

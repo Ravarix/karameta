@@ -39,11 +39,6 @@ jobs:
           MODE: scrape
         run: go run .
 
-      - name: Export current day stats
-        env:
-          MODE: export-current
-        run: go run .
-
       - name: Commit and push if changed
         run: |
           git config user.name "Game Scraper Bot"
