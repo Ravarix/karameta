@@ -699,6 +699,7 @@
         }
 
         let pieChartInstance = null;
+        let baseChartInstance = null;
         let trendChartInstance = null;
 
         function renderDashboard(aggregated, trends) {
@@ -727,8 +728,13 @@
 
                     <div class="chart-container">
                         <h2 class="section-title">Distribution (Selection)</h2>
-                        <div class="chart-wrapper">
-                            <canvas id="pieChart"></canvas>
+                        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                            <div class="chart-wrapper" style="flex: 1; min-width: 300px;">
+                                <canvas id="pieChart"></canvas>
+                            </div>
+                            <div class="chart-wrapper" style="flex: 1; min-width: 300px;">
+                                <canvas id="basePieChart"></canvas>
+                            </div>
                         </div>
                     </div>
 
@@ -757,6 +763,7 @@
             `).join('');
 
             renderPieChart(aggregated);
+            renderBaseChart(aggregated);
             renderTrendChart(trends);
         }
 
@@ -814,14 +821,13 @@
             }
 
             // Prepare Pie Data
-            // Filter > 1% for clarity
             const total = data.totalGameCount;
             let others = 0;
             const labels = [];
             const values = [];
 
             data.topCombinations.forEach(c => {
-                if (c.percentage > 1.0) {
+                if (c.percentage > 0.4) {
                     labels.push(`${c.combination.leader}/${c.combination.base}`);
                     values.push(c.count);
                 } else {
@@ -893,6 +899,8 @@
                             backgroundColor: deckColors,
                             borderColor: '#1a1f2e',
                             borderWidth: 2,
+                            hoverBorderColor: '#ffffff',
+                            hoverOffset: 5,
                             label: 'Decks'
                         },
                         {
@@ -916,8 +924,7 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'right',
-                            labels: { color: '#a8b2d1' }
+                            display: false
                         },
                         tooltip: {
                             callbacks: {
@@ -946,6 +953,99 @@
                                     const value = context.parsed || 0;
                                     const percentage = ((value / datasetTotal) * 100).toFixed(1);
                                     return `${label}: ${percentage}% (${value.toLocaleString()})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderBaseChart(data) {
+            const ctx = document.getElementById('basePieChart').getContext('2d');
+
+            if (baseChartInstance) {
+                baseChartInstance.destroy();
+            }
+
+            const baseCounts = {};
+            for (const [combo, count] of Object.entries(data.combinations)) {
+                const [leader, base] = combo.split('/');
+                baseCounts[base] = (baseCounts[base] || 0) + count;
+            }
+
+            const sortedBases = Object.entries(baseCounts).sort((a, b) => b[1] - a[1]);
+
+            // Filter small < 1% into others if needed, or just show top 15?
+            // Let's show all for now, but grouped 'Others' if list is huge?
+            // Given the known base set is distinct, we usually want to see them.
+            // But let's apply the same 1% rule or top 15 for consistency if it gets crowded.
+            // For bases, usually < 20 exists, so let's just show them all.
+
+            const labels = sortedBases.map(x => x[0]);
+            const values = sortedBases.map(x => x[1]);
+
+            // Colors based on Base Aspect
+            const colors = labels.map(baseName => {
+                const aspect = baseAspects[baseName];
+                return ASPECT_COLORS[aspect] || '#a4b0be';
+            });
+
+            baseChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colors,
+                        borderColor: '#1a1f2e',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onHover: (event, elements, chart) => {
+                        if (!pieChartInstance) return;
+
+                        if (elements && elements.length) {
+                            // Something is hovered in Base Chart
+                            const index = elements[0].index;
+                            const baseName = chart.data.labels[index];
+
+                            // Find matching indices in Deck Pie Chart (dataset 0)
+                            const activeElements = [];
+                            pieChartInstance.data.labels.forEach((label, i) => {
+                                const parts = label.split('/');
+                                // Check if label matches "Leader/Base" format and Base matches
+                                if (parts.length === 2 && parts[1] === baseName) {
+                                    activeElements.push({ datasetIndex: 0, index: i });
+                                }
+                            });
+
+                            pieChartInstance.setActiveElements(activeElements);
+                            pieChartInstance.update();
+                        } else {
+                            // Nothing hovered, clear highlight
+                            pieChartInstance.setActiveElements([]);
+                            pieChartInstance.update();
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: false,
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${percentage}% (${value})`;
                                 }
                             }
                         }
