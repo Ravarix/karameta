@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Statistics Dashboard</title>
+    <title>Karameta</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
@@ -25,7 +26,7 @@
             margin: 0 auto;
             background: #1a1f2e;
             border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(212, 175, 55, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(212, 175, 55, 0.1);
             overflow: hidden;
             border: 1px solid rgba(212, 175, 55, 0.2);
         }
@@ -69,39 +70,91 @@
             background: #0f1419;
             border-bottom: 1px solid rgba(212, 175, 55, 0.2);
             display: flex;
-            gap: 20px;
-            align-items: center;
+            gap: 40px;
+            align-items: flex-start;
             flex-wrap: wrap;
         }
 
-        .controls label {
-            font-weight: 600;
-            color: #d4af37;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 14px;
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .controls select {
+        .control-group label {
+            color: #d4af37;
+            font-weight: 600;
+        }
+
+        .date-inputs {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            color: #a8b2d1;
+        }
+
+        input[type="date"] {
             padding: 10px 16px;
             font-size: 16px;
             border: 2px solid rgba(212, 175, 55, 0.3);
             border-radius: 8px;
             background: #1a1f2e;
-            color: #a8b2d1;
+            color: #d4af37;
             cursor: pointer;
-            transition: all 0.3s;
+            font-family: inherit;
         }
 
-        .controls select:hover {
-            border-color: #d4af37;
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) sepia(100%) saturate(1000%) hue-rotate(360deg) brightness(1.2);
+            cursor: pointer;
+        }
+
+        /* Multiselect Styling */
+        .multiselect-container {
+            width: 100%;
+            height: 120px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            background: #1a1f2e;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .multiselect-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .multiselect-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
             background: #252a3d;
+            border-radius: 16px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+            color: #a8b2d1;
+            font-size: 13px;
+            user-select: none;
         }
 
-        .controls select:focus {
-            outline: none;
+        .multiselect-option:hover {
+            background: #2c3349;
+            border-color: rgba(212, 175, 55, 0.5);
+        }
+
+        .multiselect-option input {
+            accent-color: #d4af37;
+        }
+
+        .multiselect-option:has(input:checked) {
+            background: rgba(212, 175, 55, 0.1);
             border-color: #d4af37;
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+            color: #d4af37;
+            font-weight: 600;
         }
 
         .content {
@@ -121,7 +174,7 @@
             color: #e8eaf6;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
             transition: transform 0.3s, box-shadow 0.3s;
             border: 1px solid rgba(212, 175, 55, 0.2);
             position: relative;
@@ -268,7 +321,7 @@
             background: #0f1419;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
             margin-bottom: 40px;
             border: 1px solid rgba(212, 175, 55, 0.2);
         }
@@ -283,6 +336,7 @@
             .chart-wrapper {
                 height: 300px;
             }
+
             .header h1 {
                 font-size: 28px;
             }
@@ -303,24 +357,30 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎮 Game Statistics Dashboard</h1>
+            <h1>Karabast Statistics Dashboard</h1>
             <p>Real-time analysis of ongoing games</p>
         </div>
 
         <div class="controls">
-            <label for="typeSelect">View:</label>
-            <select id="typeSelect">
-                <option value="current">Today (Live)</option>
-                <option value="daily">Daily Summary</option>
-            </select>
+            <div class="control-group">
+                <label>Date Range:</label>
+                <div class="date-inputs">
+                    <input type="date" id="startDate">
+                    <span>to</span>
+                    <input type="date" id="endDate">
+                </div>
+            </div>
 
-            <label for="dateSelect">Date:</label>
-            <select id="dateSelect">
-                <option value="">Loading...</option>
-            </select>
+            <div class="control-group" style="flex: 1;">
+                <label>Combinations to Trend:</label>
+                <div class="multiselect-container" id="comboSelect">
+                    <div class="multiselect-placeholder">Loading...</div>
+                </div>
+            </div>
         </div>
 
         <div id="content" class="content">
@@ -329,301 +389,527 @@
     </div>
 
     <script>
-        let availableDates = {
-            current: ['live'],
-            daily: []
-        };
-        let cardData = {};
+        // Global State
+        let statsData = null;
+        let cardData = null;
         let leaderAspects = {};
-        let baseAspects = {}
-        let currentType = 'current';
-        const ghRoot = 'https://raw.githubusercontent.com/Ravarix/karameta/refs/heads/main/'
+        let baseAspects = {};
+        const ghRoot = 'https://raw.githubusercontent.com/Ravarix/karameta/refs/heads/main/';
+
+        // Configuration
+        const CHART_COLORS = [
+            '#4a9eff', '#ff4757', '#2ed573', '#d4af37', '#8b5cf6',
+            '#3742fa', '#ff6348', '#26de81', '#ffa502', '#a55eea',
+            '#4b7bec', '#fc5c65', '#20bf6b', '#fd9644', '#8854d0'
+        ];
+
+        const alignments = ["Heroism", "Villainy"];
+
+        const ASPECT_COLORS = {
+            'Aggression': '#cc0000', // Red
+            'Command': '#009900',    // Green
+            'Cunning': '#ffcc00',    // Yellow
+            'Vigilance': '#0077cc',  // Blue
+            'Heroism': '#ffffff',    // White
+            'Villainy': '#000000',   // Dark/Black
+            'Star': '#808080'        // Neutral
+        };
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function getComboColor(leader, base) {
+            const aspects = new Set();
+
+            // Add Leader Aspects
+            if (leaderAspects[leader]) {
+                leaderAspects[leader].forEach(a => aspects.add(a));
+            }
+
+            // Add Base Aspect
+            if (baseAspects[base]) {
+                aspects.add(baseAspects[base]);
+            }
+
+            const colors = [];
+            aspects.forEach(a => {
+                if (ASPECT_COLORS[a]) colors.push(hexToRgb(ASPECT_COLORS[a]));
+            });
+
+            if (colors.length === 0) return '#a4b0be'; // Default gray
+
+            // Mix colors
+            let r = 0, g = 0, b = 0;
+            colors.forEach(c => {
+                r += c.r;
+                g += c.g;
+                b += c.b;
+            });
+
+            r = Math.round(r / colors.length);
+            g = Math.round(g / colors.length);
+            b = Math.round(b / colors.length);
+
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        // Initialization
+        async function init() {
+            try {
+                // Load parallel data
+                await Promise.all([loadCards(), loadStats()]);
+
+                // Find all available dates across all combos to establish range
+                const allDatesSet = new Set();
+                Object.values(statsData.stats).forEach(stat => {
+                    Object.keys(stat.dailyCounts).forEach(d => allDatesSet.add(d));
+                });
+                const dates = Array.from(allDatesSet).sort();
+
+                if (dates.length > 0) {
+                    const lastDate = dates[dates.length - 1];
+                    // Default to last 14 days
+                    const firstDate = dates[Math.max(0, dates.length - 14)];
+
+                    document.getElementById('endDate').value = lastDate;
+                    document.getElementById('startDate').value = firstDate;
+
+                    // Set min/max
+                    const minStr = dates[0];
+                    const maxStr = dates[dates.length - 1];
+                    ['startDate', 'endDate'].forEach(id => {
+                        const el = document.getElementById(id);
+                        el.min = minStr;
+                        el.max = maxStr;
+                        el.addEventListener('change', updateView);
+                        el.addEventListener('input', updateView);
+                    });
+                }
+
+                initComboSelect();
+                updateView(); // Initial render
+
+            } catch (e) {
+                showError("Initialization failed: " + e.message);
+                console.error(e);
+            }
+        }
 
         async function loadCards() {
-            try {
-                const response = await fetch('cards.json');
-                if (response.ok) {
-                    cardData = await response.json();
-                    for (const leader of cardData.leaders) {
-                        leaderAspects[leader.name] = leader.aspects;
-                    }
+            const resp = await fetch(ghRoot + 'docs/cards.json');
+            if (!resp.ok) throw new Error("Failed to load cards.json");
+            cardData = await resp.json();
 
-                    for (const base of cardData.bases) {
-                        baseAspects[base.name] = base.aspect;
-                    }
-                } else {
-                    console.warn('Failed to load cardData.json');
-                }
-            } catch (error) {
-                console.warn('Failed to load cardData.json: ' + error.message);
-            }
+            cardData.leaders.forEach(l => leaderAspects[l.name] = l.aspects);
+            cardData.bases.forEach(b => baseAspects[b.name] = b.aspect);
         }
 
-        async function loadAvailableDates() {
-            try {
-                const response = await fetch(ghRoot + 'data/index.json?t=' + Date.now());
-                if (response.ok) {
-                    const index = await response.json();
-                    availableDates.daily = index.daily || [];
-                    updateDateSelect();
-                } else {
-                    console.warn('Failed to load index.json, no historical data available');
-                }
-            } catch (error) {
-                console.warn('Failed to load available dates: ' + error.message);
-                // Not a critical error, just means no historical data available
-            }
-
-            // Always try to load current view by default
-            loadData('current', 'live');
+        async function loadStats() {
+            // In a real scenario, this might be large, but we're doing it client side as requested
+            const resp = await fetch(ghRoot + 'stats.json?t=' + Date.now());
+            if (!resp.ok) throw new Error("Failed to load stats.json");
+            statsData = await resp.json();
         }
 
-        function updateDateSelect() {
-            const select = document.getElementById('dateSelect');
-            select.innerHTML = '';
+        function getDateRange() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            return {
+                start: start || '0000-00-00',
+                end: end || '9999-12-31'
+            };
+        }
 
-            if (currentType === 'current') {
-                const option = document.createElement('option');
-                option.value = 'live';
-                option.textContent = 'Live (updates every 5 min)';
-                select.appendChild(option);
-                select.disabled = true;
-                return;
+        function getSelectedCombos() {
+            const checkboxes = document.querySelectorAll('.multiselect-option input:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        function updateView() {
+            if (!statsData) return;
+
+            const { start, end } = getDateRange();
+            const selectedCombos = getSelectedCombos();
+
+            // 1. Process data for the aggregation view (Pie & List)
+            const aggregated = aggregateData(start, end);
+
+            // 2. Process data for the trend chart
+            const trends = processTrendData(selectedCombos, start, end);
+
+            // 3. Render everything
+            renderDashboard(aggregated, trends);
+        }
+
+        function aggregateData(startDate, endDate) {
+            const aggregated = {
+                totalGameCount: 0,
+                combinations: {},
+                topCombinations: []
+            };
+
+            for (const [comboName, stats] of Object.entries(statsData.stats)) {
+                let comboCount = 0;
+                for (const [date, count] of Object.entries(stats.dailyCounts)) {
+                    if (date >= startDate && date <= endDate) {
+                        comboCount += count;
+                    }
+                }
+
+                if (comboCount > 0) {
+                    aggregated.combinations[comboName] = comboCount;
+                    aggregated.totalGameCount += comboCount;
+                }
             }
 
-            select.disabled = false;
-            const dates = availableDates[currentType];
-            if (dates.length === 0) {
-                const option = document.createElement('option');
-                option.value = '';
-                option.textContent = 'No data available';
-                select.appendChild(option);
-                return;
-            }
+            // Calculate Top Combinations
+            aggregated.topCombinations = Object.entries(aggregated.combinations)
+                .map(([name, count]) => {
+                    const [leader, base] = name.split('/');
+                    return {
+                        combination: { leader, base },
+                        count,
+                        percentage: (count / aggregated.totalGameCount) * 100
+                    };
+                })
+                .sort((a, b) => b.count - a.count);
 
-            dates.forEach(date => {
-                const option = document.createElement('option');
-                option.value = date;
-                option.textContent = date;
-                select.appendChild(option);
+            return aggregated;
+        }
+
+        function processTrendData(comboNames, startDate, endDate) {
+            // Collect all unique dates in the range that have data
+            const allDates = new Set();
+            comboNames.forEach(name => {
+                const stats = statsData.stats[name];
+                if (stats) {
+                    Object.keys(stats.dailyCounts).forEach(d => {
+                        if (d >= startDate && d <= endDate) allDates.add(d);
+                    });
+                }
             });
+            const sortedDates = Array.from(allDates).sort();
+
+            const datasets = comboNames.map((name, idx) => {
+                const stats = statsData.stats[name];
+                const dataPoints = sortedDates.map(date => {
+                    // To get percentage, we need the total games for that specific day
+                    // This is expensive to calculate every time, but doing it on fly for now
+                    const totalGamesForDay = getTotalGamesForDate(date);
+                    if (totalGamesForDay === 0) return 0;
+
+                    const count = stats?.dailyCounts?.[date] || 0;
+                    return (count / totalGamesForDay) * 100;
+                });
+
+                const [leader, base] = name.split('/');
+                const color = getComboColor(leader, base);
+
+                return {
+                    label: name,
+                    data: dataPoints,
+                    borderColor: color,
+                    backgroundColor: color,
+                    pointBackgroundColor: color,
+                    pointRadius: 3,
+                };
+            });
+
+            return { labels: sortedDates, datasets };
         }
 
-        let autoRefreshInterval = null;
+        // Helper to cache daily totals since we need them often
+        const _dailyTotalCache = {};
+        function getTotalGamesForDate(date) {
+            if (_dailyTotalCache[date] !== undefined) return _dailyTotalCache[date];
 
-        async function loadData(type, date) {
-            try {
-                // Clear any existing auto-refresh
-                if (autoRefreshInterval) {
-                    clearInterval(autoRefreshInterval);
-                    autoRefreshInterval = null;
-                }
-
-                let filename;
-                if (type === 'current') {
-                    filename = `data/current.json`;
-                    // Auto-refresh every 30 seconds for current view
-                    autoRefreshInterval = setInterval(() => {
-                        loadData('current', 'live');
-                    }, 30000);
-                } else {
-                    filename = `data/${type}_${date}.json`;
-                }
-
-                const response = await fetch(ghRoot + filename + '?t=' + Date.now()); // Cache busting
-
-                if (!response.ok) {
-                    throw new Error(`Failed to load ${filename}`);
-                }
-
-                const data = await response.json();
-                renderStats(data, type);
-            } catch (error) {
-                showError('Failed to load data: ' + error.message);
+            let total = 0;
+            for (const stats of Object.values(statsData.stats)) {
+                total += (stats.dailyCounts[date] || 0);
             }
+            _dailyTotalCache[date] = total;
+            return total;
         }
 
-        let chartInstance = null;
+        function initComboSelect() {
+            // Find the latest date with data to use for "current day" defaults
+            let maxDate = '0000-00-00';
+            // Sample a few to find the max date range efficiently
+            const sample = Object.values(statsData.stats).slice(0, 50);
+            for (const s of sample) {
+                const dates = Object.keys(s.dailyCounts);
+                if (dates.length) {
+                    const last = dates.sort().pop();
+                    if (last > maxDate) maxDate = last;
+                }
+            }
 
-        function renderStats(data, type) {
+            // Sort by count on the maxDate
+            const sortedCombos = Object.entries(statsData.stats)
+                .map(([name, stats]) => ({
+                    name,
+                    // specific day count > total count > name
+                    dayCount: stats.dailyCounts[maxDate] || 0,
+                    totalCount: stats.count
+                }))
+                .sort((a, b) => {
+                    if (b.dayCount !== a.dayCount) return b.dayCount - a.dayCount;
+                    return b.totalCount - a.totalCount;
+                })
+                .map(item => item.name);
+
+            const container = document.getElementById('comboSelect');
+            container.innerHTML = '';
+
+            // Limit to top 50 for UI performance in the dropdown, or maybe all if not too many
+            // There are many combos. Let's show all but use a simple custom dropdown
+
+            // Improved MultiSelect UI
+            const wrapper = document.createElement('div');
+            wrapper.className = 'multiselect-wrapper';
+
+            // Initialize with top 10 selected
+            const defaultSelected = new Set(sortedCombos.slice(0, 5));
+
+            sortedCombos.forEach(combo => {
+                const label = document.createElement('label');
+                label.className = 'multiselect-option';
+
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.value = combo;
+                cb.checked = defaultSelected.has(combo);
+                cb.addEventListener('change', updateView);
+
+                const text = document.createElement('span');
+                text.textContent = combo;
+
+                label.appendChild(cb);
+                label.appendChild(text);
+                wrapper.appendChild(label);
+            });
+
+            container.appendChild(wrapper);
+        }
+
+        let pieChartInstance = null;
+        let trendChartInstance = null;
+
+        function renderDashboard(aggregated, trends) {
             const content = document.getElementById('content');
 
-            let dateLabel, periodLabel;
-            if (type === 'current') {
-                dateLabel = data.date + ' 🔴 LIVE';
-                periodLabel = 'Today';
-            } else {
-                dateLabel = data.date;
-                periodLabel = 'Day';
+            // Only rebuild structure if missing (first load)
+            if (!document.getElementById('statsGrid')) {
+                content.innerHTML = `
+                    <div class="stats-grid" id="statsGrid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Games in Range</div>
+                            <div class="stat-value" id="valTotalGames">-</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Unique Combinations</div>
+                            <div class="stat-value" id="valUniqueCombos">-</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <h2 class="section-title">Play Rate Trends</h2>
+                        <div class="chart-wrapper">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <h2 class="section-title">Distribution (Selection)</h2>
+                        <div class="chart-wrapper">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+
+                    <h2 class="section-title">Top Combinations (Selection)</h2>
+                    <div class="combo-list" id="comboList"></div>
+                `;
             }
 
-            const html = `
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">Total Games</div>
-                        <div class="stat-value">${data.totalGames.toLocaleString()}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Unique Combinations</div>
-                        <div class="stat-value">${Object.keys(data.combinations || {}).length}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">${periodLabel}</div>
-                        <div class="stat-value" style="font-size: 20px;">${dateLabel}</div>
-                    </div>
-                </div>
+            // Update Stats
+            document.getElementById('valTotalGames').textContent = aggregated.totalGameCount.toLocaleString();
+            document.getElementById('valUniqueCombos').textContent = Object.keys(aggregated.combinations).length.toLocaleString();
 
-                <div class="chart-container">
-                    <h2 class="section-title">Distribution of Top Combinations</h2>
-                    <div class="chart-wrapper">
-                        <canvas id="comboChart"></canvas>
+            // Update Lists
+            const listContainer = document.getElementById('comboList');
+            listContainer.innerHTML = aggregated.topCombinations.slice(0, 20).map((combo, i) => `
+                <div class="combo-item">
+                    <div class="combo-rank">#${i + 1}</div>
+                    <div class="combo-info">
+                        <div class="combo-name">${combo.combination.leader} / ${combo.combination.base}</div>
+                    </div>
+                    <div class="combo-stats">
+                        <div class="combo-count">${combo.count.toLocaleString()}</div>
+                        <div class="combo-percentage">${combo.percentage.toFixed(1)}%</div>
                     </div>
                 </div>
+            `).join('');
 
-                <h2 class="section-title">Top Leader/Base Combinations</h2>
-                <div class="combo-list">
-                    ${(data.topCombinations || []).map((combo, i) => `
-                        <div class="combo-item">
-                            <div class="combo-rank">#${i + 1}</div>
-                            <div class="combo-info">
-                                <div class="combo-name">${combo.combination.leader} / ${combo.combination.base}</div>
-                                <div class="combo-details">Most popular combination</div>
-                            </div>
-                            <div class="combo-stats">
-                                <div class="combo-count">${combo.count.toLocaleString()}</div>
-                                <div class="combo-percentage">${combo.percentage.toFixed(1)}% of total</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-
-            content.innerHTML = html;
-
-            // Render the pie chart
-            renderChart(data);
+            renderPieChart(aggregated);
+            renderTrendChart(trends);
         }
 
-        function renderChart(data) {
-            // Destroy existing chart if it exists
-            if (chartInstance) {
-                chartInstance.destroy();
+        function renderTrendChart(trendData) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+
+            if (trendChartInstance) {
+                trendChartInstance.destroy();
             }
 
-            const canvas = document.getElementById('comboChart');
-            if (!canvas) return;
-
-            const ctx = canvas.getContext('2d');
-
-            // Get all combinations and convert to array
-            const combinations = data.combinations || {};
-            const comboArray = Object.entries(combinations).map(([name, count]) => ({
-                name: name,
-                count: count
-            }));
-
-            // Calculate total for percentages
-            const totalCount = comboArray.reduce((sum, combo) => sum + combo.count, 0);
-
-            // Filter combinations with >0.5% play rate
-            const threshold = 0.5;
-            const significantCombos = comboArray.filter(combo => {
-                const percentage = (combo.count / totalCount) * 100;
-                return percentage > threshold;
+            trendChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: trendData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#a8b2d1' }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Daily Play Rate Percentage',
+                            color: '#d4af37'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#a8b2d1' },
+                            title: { display: true, text: 'Play Rate %', color: '#a8b2d1' }
+                        },
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#a8b2d1' }
+                        }
+                    }
+                }
             });
+        }
 
-            // Sort by count descending
-            significantCombos.sort((a, b) => b.count - a.count);
+        function renderPieChart(data) {
+            // Logic similar to old chart but using aggregated data
+            // (Simplified for brevity but maintaining features)
+            const ctx = document.getElementById('pieChart').getContext('2d');
 
-            // Get labels and values for significant combinations
-            const labels = significantCombos.map(combo => combo.name);
-            const values = significantCombos.map(combo => combo.count);
-
-            // Calculate "Others" if there are more combinations
-            const remainingCombos = comboArray.filter(combo => {
-                const percentage = (combo.count / totalCount) * 100;
-                return percentage <= threshold;
-            });
-
-            if (remainingCombos.length > 0) {
-                const othersCount = remainingCombos.reduce((sum, combo) => sum + combo.count, 0);
-                const othersLabel = `Others (${remainingCombos.length} combinations <0.5%)`;
-                labels.push(othersLabel);
-                values.push(othersCount);
+            if (pieChartInstance) {
+                pieChartInstance.destroy();
             }
 
-            const alignments = ["Heroism", "Villainy"];
+            // Prepare Pie Data
+            // Filter > 1% for clarity
+            const total = data.totalGameCount;
+            let others = 0;
+            const labels = [];
+            const values = [];
 
+            data.topCombinations.forEach(c => {
+                if (c.percentage > 1.0) {
+                    labels.push(`${c.combination.leader}/${c.combination.base}`);
+                    values.push(c.count);
+                } else {
+                    others += c.count;
+                }
+            });
+
+            if (others > 0) {
+                labels.push('Others');
+                values.push(others);
+            }
             let aspectDistribution = {};
-            for (let comboKey in combinations) {
-                let [leader, base] = comboKey.split('/');
+
+            for (const [comboName, count] of Object.entries(data.combinations)) {
+                let [leader, base] = comboName.split('/');
                 let aspects = new Set();
+
                 if (leaderAspects[leader]) {
-                    leaderAspects[leader].forEach(aspects.add, aspects);
+                    leaderAspects[leader].forEach(a => aspects.add(a));
                 }
                 if (baseAspects[base]) {
                     aspects.add(baseAspects[base]);
                 }
+
                 for (let aspect of aspects) {
                     if (!aspectDistribution[aspect]) aspectDistribution[aspect] = 0;
-                    aspectDistribution[aspect] += combinations[comboKey];
+                    aspectDistribution[aspect] += count;
                 }
             }
 
+            // Prepare Aspect Data (excluding Alignments and None)
             const aspectArray = Object.entries(aspectDistribution)
                 .filter(([name]) => !alignments.includes(name) && name !== "None")
                 .sort()
-                .map(([name, count]) => ({
-                    name: name,
-                    count: count
-                }));
-            const aspectLabels = aspectArray.map(aspect => aspect.name);
-            const aspectValues = aspectArray.map(aspect => aspect.count);
+                .map(([name, count]) => ({ name, count }));
 
+            const aspectLabels = aspectArray.map(a => a.name);
+            const aspectValues = aspectArray.map(a => a.count);
+
+            const aspectColors = aspectLabels.map(label => ASPECT_COLORS[label] || '#a4b0be');
+
+            // Prepare Alignment Data
             const alignmentArray = Object.entries(aspectDistribution)
                 .filter(([name]) => alignments.includes(name))
                 .sort()
-                .map(([name, count]) => ({
-                    name: name,
-                    count: count
-                }));
-            const alignmentLabels = alignmentArray.map(aspect => aspect.name);
-            const alignmentValues = alignmentArray.map(aspect => aspect.count);
+                .map(([name, count]) => ({ name, count }));
+
+            const alignmentLabels = alignmentArray.map(a => a.name);
+            const alignmentValues = alignmentArray.map(a => a.count);
+            const alignmentColors = ['#ffffff', '#000000']; // White/Black for Heroism/Villainy
 
 
-            // Star Wars themed colors: blues (heroes), reds (villains), greens (bounty hunters), purples (force), golds (neutral)
-            const colors = [
-                '#4a9eff', '#ff4757', '#2ed573', '#d4af37', '#8b5cf6',
-                '#3742fa', '#ff6348', '#26de81', '#ffa502', '#a55eea',
-                '#4b7bec', '#fc5c65', '#20bf6b', '#fd9644', '#8854d0',
-                '#5f27cd', '#c23616', '#0fb9b1', '#f79f1f', '#6c5ce7',
-                '#0984e3', '#d63031', '#00b894', '#fdcb6e', '#a29bfe'
-            ];
+            const totalAspects = aspectValues.reduce((a, b) => a + b, 0);
+            const totalAlignments = alignmentValues.reduce((a, b) => a + b, 0);
 
-            const aspectColors = [
-                '#d63031', '#20bf6b', '#f6dc5c', '#0984e3', '#000000'
-            ]
+            // Generate Colors for Decks
+            const deckColors = labels.map(label => {
+                const [leader, base] = label.split('/');
+                return getComboColor(leader, base);
+            });
 
-            const alignmentColors = [
-                '#ffffff', '#000000'
-            ]
-
-            chartInstance = new Chart(ctx, {
+            pieChartInstance = new Chart(ctx, {
                 type: 'pie',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        data: values,
-                        backgroundColor: colors,
-                        borderColor: '#ffffff',
-                        borderWidth: 2
-                    },{
-                        data: aspectValues,
-                        backgroundColor: aspectColors,
-                    }, {
-                        data: alignmentValues,
-                        backgroundColor: alignmentColors,
-                    }]
+                    datasets: [
+                        {
+                            data: values,
+                            backgroundColor: deckColors,
+                            borderColor: '#1a1f2e',
+                            borderWidth: 2,
+                            label: 'Decks'
+                        },
+                        {
+                            data: aspectValues,
+                            backgroundColor: aspectColors,
+                            borderColor: '#1a1f2e',
+                            borderWidth: 2,
+                            label: 'Aspects',
+                        },
+                        {
+                            data: alignmentValues,
+                            backgroundColor: alignmentColors,
+                            borderColor: '#1a1f2e',
+                            borderWidth: 2,
+                            label: 'Alignment',
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
@@ -631,38 +917,35 @@
                     plugins: {
                         legend: {
                             position: 'right',
-                            labels: {
-                                font: {
-                                    size: 12
-                                },
-                                padding: 15,
-                                usePointStyle: true
-                            }
+                            labels: { color: '#a8b2d1' }
                         },
                         tooltip: {
                             callbacks: {
-                                title: function(context) {
-                                    if (context[0].datasetIndex === 1) {
+                                title: function (context) {
+                                    // Override title for inner rings to show the correct label
+                                    if (context[0].datasetIndex === 1) { // Aspects
                                         return aspectLabels[context[0].dataIndex];
                                     }
-                                    if (context[0].datasetIndex === 2) {
+                                    if (context[0].datasetIndex === 2) { // Alignment
                                         return alignmentLabels[context[0].dataIndex];
                                     }
-                                    const labelIndex = (context[0].datasetIndex * 2) + context[0].dataIndex;
-                                    return context[0].chart.data.labels[labelIndex] + ': ' + context[0].formattedValue;
+                                    return context[0].label;
                                 },
-                                label: function(context) {
-                                    var label = context.label || '';
+                                label: function (context) {
+                                    let label = context.label || '';
+                                    let datasetTotal = total; // Default to total games for Decks
+
                                     if (context.datasetIndex === 1) {
                                         label = aspectLabels[context.dataIndex];
-                                    }
-                                    if (context.datasetIndex === 2) {
+                                        datasetTotal = totalAspects;
+                                    } else if (context.datasetIndex === 2) {
                                         label = alignmentLabels[context.dataIndex];
+                                        datasetTotal = totalAlignments;
                                     }
+
                                     const value = context.parsed || 0;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = ((value / total) * 100).toFixed(1);
-                                    return `${label}: ${value} (${percentage}%)`;
+                                    const percentage = ((value / datasetTotal) * 100).toFixed(1);
+                                    return `${label}: ${percentage}% (${value.toLocaleString()})`;
                                 }
                             }
                         }
@@ -671,30 +954,14 @@
             });
         }
 
-        function showError(message) {
-            const content = document.getElementById('content');
-            content.innerHTML = `<div class="error">${message}</div>`;
+        function showError(msg) {
+            document.getElementById('content').innerHTML = `<div class="error">${msg}</div>`;
         }
 
-        document.getElementById('typeSelect').addEventListener('change', (e) => {
-            currentType = e.target.value;
-            updateDateSelect();
-            if (currentType === 'current') {
-                loadData('current', 'live');
-            } else if (availableDates[currentType].length > 0) {
-                document.getElementById('dateSelect').value = availableDates[currentType][0];
-                loadData(currentType, availableDates[currentType][0]);
-            }
-        });
+        // Start
+        init();
 
-        document.getElementById('dateSelect').addEventListener('change', (e) => {
-            loadData(currentType, e.target.value);
-        });
-
-        // Load live data immediately, then load index in background
-        loadCards();
-        loadData('current', 'live');
-        loadAvailableDates();
     </script>
 </body>
+
 </html>
