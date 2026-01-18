@@ -502,7 +502,7 @@
         }
 
         async function loadCards() {
-            const resp = await fetch(ghRoot + 'docs/cards.json');
+            const resp = await fetch(ghRoot + 'data/cards.json');
             if (!resp.ok) throw new Error("Failed to load cards.json");
             cardData = await resp.json();
 
@@ -512,7 +512,7 @@
 
         async function loadStats() {
             // In a real scenario, this might be large, but we're doing it client side as requested
-            const resp = await fetch(ghRoot + 'stats.json?t=' + Date.now());
+            const resp = await fetch(ghRoot + 'data/stats.json?t=' + Date.now());
             if (!resp.ok) throw new Error("Failed to load stats.json");
             statsData = await resp.json();
         }
