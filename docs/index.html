@@ -424,7 +424,7 @@
             } : null;
         }
 
-        function getComboColor(leader, base) {
+        function getAspects(leader, base) {
             const aspects = new Set();
 
             // Add Leader Aspects
@@ -436,6 +436,11 @@
             if (baseAspects[base]) {
                 aspects.add(baseAspects[base]);
             }
+            return aspects;
+        }
+
+        function getComboColor(leader, base) {
+            const aspects = getAspects(leader, base);
 
             const colors = [];
             aspects.forEach(a => {
@@ -827,32 +832,106 @@
             const values = [];
 
             data.topCombinations.forEach(c => {
-                if (c.percentage > 0.4) {
+                // if (c.percentage > 0.1) {
                     labels.push(`${c.combination.leader}/${c.combination.base}`);
                     values.push(c.count);
-                } else {
-                    others += c.count;
-                }
+                // } else {
+                //     others += c.count;
+                // }
             });
 
             if (others > 0) {
                 labels.push('Others');
                 values.push(others);
             }
+
+            // Generate Colors for Decks
+            const deckColors = labels.map(label => {
+                const [leader, base] = label.split('/');
+                return getComboColor(leader, base);
+            });
+
+            pieChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            data: values,
+                            backgroundColor: deckColors,
+                            borderColor: '#000000',
+                            borderWidth: 0,
+                            hoverBorderColor: '#ffffff',
+                            hoverOffset: 20,
+                            label: 'Decks'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                // title: function (context) {
+                                //     // Override title for inner rings to show the correct label
+                                //     if (context[0].datasetIndex === 1) { // Aspects
+                                //         return aspectLabels[context[0].dataIndex];
+                                //     }
+                                //     if (context[0].datasetIndex === 2) { // Alignment
+                                //         return alignmentLabels[context[0].dataIndex];
+                                //     }
+                                //     return context[0].label;
+                                // },
+                                label: function (context) {
+                                    let label = context.label || '';
+                                    let datasetTotal = total; // Default to total games for Decks
+
+                                    const value = context.parsed || 0;
+                                    const percentage = ((value / datasetTotal) * 100).toFixed(1);
+                                    return `${label}: ${percentage}% (${value.toLocaleString()})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderBaseChart(data) {
+            const ctx = document.getElementById('basePieChart').getContext('2d');
+
+            if (baseChartInstance) {
+                baseChartInstance.destroy();
+            }
+
+            const baseCounts = {};
+            for (const [combo, count] of Object.entries(data.combinations)) {
+                const [leader, base] = combo.split('/');
+                baseCounts[base] = (baseCounts[base] || 0) + count;
+            }
+
+            const sortedBases = Object.entries(baseCounts).sort((a, b) => b[1] - a[1]);
+
+            const labels = sortedBases.map(x => x[0]);
+            const values = sortedBases.map(x => x[1]);
+
+            // Colors based on Base Aspect
+            const colors = labels.map(baseName => {
+                const aspect = baseAspects[baseName];
+                return ASPECT_COLORS[aspect] || '#a4b0be';
+            });
+
             let aspectDistribution = {};
 
             for (const [comboName, count] of Object.entries(data.combinations)) {
-                let [leader, base] = comboName.split('/');
-                let aspects = new Set();
+                const [leader, base] = comboName.split('/');
+                const aspects = getAspects(leader, base);
 
-                if (leaderAspects[leader]) {
-                    leaderAspects[leader].forEach(a => aspects.add(a));
-                }
-                if (baseAspects[base]) {
-                    aspects.add(baseAspects[base]);
-                }
-
-                for (let aspect of aspects) {
+                for (const aspect of aspects) {
                     if (!aspectDistribution[aspect]) aspectDistribution[aspect] = 0;
                     aspectDistribution[aspect] += count;
                 }
@@ -883,124 +962,30 @@
             const totalAspects = aspectValues.reduce((a, b) => a + b, 0);
             const totalAlignments = alignmentValues.reduce((a, b) => a + b, 0);
 
-            // Generate Colors for Decks
-            const deckColors = labels.map(label => {
-                const [leader, base] = label.split('/');
-                return getComboColor(leader, base);
-            });
-
-            pieChartInstance = new Chart(ctx, {
+            baseChartInstance = new Chart(ctx, {
                 type: 'pie',
                 data: {
                     labels: labels,
                     datasets: [
                         {
                             data: values,
-                            backgroundColor: deckColors,
-                            borderColor: '#1a1f2e',
-                            borderWidth: 2,
-                            hoverBorderColor: '#ffffff',
-                            hoverOffset: 5,
-                            label: 'Decks'
+                            backgroundColor: colors,
+                            borderColor: '#000000',
+                            borderWidth: 1
                         },
                         {
                             data: aspectValues,
                             backgroundColor: aspectColors,
-                            borderColor: '#1a1f2e',
-                            borderWidth: 2,
-                            label: 'Aspects',
+                            borderColor: '#000000',
+                            borderWidth: 1,
                         },
                         {
                             data: alignmentValues,
                             backgroundColor: alignmentColors,
-                            borderColor: '#1a1f2e',
-                            borderWidth: 2,
-                            label: 'Alignment',
+                            borderColor: '#000000',
+                            borderWidth: 1,
                         }
                     ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                title: function (context) {
-                                    // Override title for inner rings to show the correct label
-                                    if (context[0].datasetIndex === 1) { // Aspects
-                                        return aspectLabels[context[0].dataIndex];
-                                    }
-                                    if (context[0].datasetIndex === 2) { // Alignment
-                                        return alignmentLabels[context[0].dataIndex];
-                                    }
-                                    return context[0].label;
-                                },
-                                label: function (context) {
-                                    let label = context.label || '';
-                                    let datasetTotal = total; // Default to total games for Decks
-
-                                    if (context.datasetIndex === 1) {
-                                        label = aspectLabels[context.dataIndex];
-                                        datasetTotal = totalAspects;
-                                    } else if (context.datasetIndex === 2) {
-                                        label = alignmentLabels[context.dataIndex];
-                                        datasetTotal = totalAlignments;
-                                    }
-
-                                    const value = context.parsed || 0;
-                                    const percentage = ((value / datasetTotal) * 100).toFixed(1);
-                                    return `${label}: ${percentage}% (${value.toLocaleString()})`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function renderBaseChart(data) {
-            const ctx = document.getElementById('basePieChart').getContext('2d');
-
-            if (baseChartInstance) {
-                baseChartInstance.destroy();
-            }
-
-            const baseCounts = {};
-            for (const [combo, count] of Object.entries(data.combinations)) {
-                const [leader, base] = combo.split('/');
-                baseCounts[base] = (baseCounts[base] || 0) + count;
-            }
-
-            const sortedBases = Object.entries(baseCounts).sort((a, b) => b[1] - a[1]);
-
-            // Filter small < 1% into others if needed, or just show top 15?
-            // Let's show all for now, but grouped 'Others' if list is huge?
-            // Given the known base set is distinct, we usually want to see them.
-            // But let's apply the same 1% rule or top 15 for consistency if it gets crowded.
-            // For bases, usually < 20 exists, so let's just show them all.
-
-            const labels = sortedBases.map(x => x[0]);
-            const values = sortedBases.map(x => x[1]);
-
-            // Colors based on Base Aspect
-            const colors = labels.map(baseName => {
-                const aspect = baseAspects[baseName];
-                return ASPECT_COLORS[aspect] || '#a4b0be';
-            });
-
-            baseChartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: values,
-                        backgroundColor: colors,
-                        borderColor: '#1a1f2e',
-                        borderWidth: 2
-                    }]
                 },
                 options: {
                     responsive: true,
@@ -1011,17 +996,46 @@
                         if (elements && elements.length) {
                             // Something is hovered in Base Chart
                             const index = elements[0].index;
-                            const baseName = chart.data.labels[index];
-
-                            // Find matching indices in Deck Pie Chart (dataset 0)
                             const activeElements = [];
-                            pieChartInstance.data.labels.forEach((label, i) => {
-                                const parts = label.split('/');
-                                // Check if label matches "Leader/Base" format and Base matches
-                                if (parts.length === 2 && parts[1] === baseName) {
-                                    activeElements.push({ datasetIndex: 0, index: i });
-                                }
-                            });
+
+                            if (elements[0].datasetIndex === 0) {
+                                const baseName = chart.data.labels[index];
+                                // Find matching indices in Deck Pie Chart (dataset 0)
+                                pieChartInstance.data.labels.forEach((label, i) => {
+                                    const parts = label.split('/');
+                                    // Check if label matches "Leader/Base" format and Base matches
+                                    if (parts.length === 2 && parts[1] === baseName) {
+                                        activeElements.push({ datasetIndex: 0, index: i });
+                                    }
+                                });
+                            } else if (elements[0].datasetIndex === 1) {
+                                const aspectName = aspectLabels[index];
+
+                                pieChartInstance.data.labels.forEach((label, i) => {
+                                    const parts = label.split('/');
+                                    // Check if label matches "Leader/Base" format and Aspect matches
+                                    if (parts.length === 2) {
+                                        const aspects = getAspects(parts[0], parts[1]);
+                                        if (aspects.has(aspectName)) {
+                                            activeElements.push({ datasetIndex: 0, index: i });
+                                        }
+                                    }
+                                });
+                            } else if (elements[0].datasetIndex === 2) {
+                                const alignmentName = alignmentLabels[index];
+
+                                pieChartInstance.data.labels.forEach((label, i) => {
+                                    const parts = label.split('/');
+                                    // Check if label matches "Leader/Base" format and Aspect matches
+                                    if (parts.length === 2) {
+                                        const aspects = getAspects(parts[0], parts[1]);
+                                        if (aspects.has(alignmentName)) {
+                                            activeElements.push({ datasetIndex: 0, index: i });
+                                        }
+                                    }
+                                });
+                            }
+
 
                             pieChartInstance.setActiveElements(activeElements);
                             pieChartInstance.update();
@@ -1040,12 +1054,32 @@
                         },
                         tooltip: {
                             callbacks: {
+                                title: function (context) {
+                                    // Override title for inner rings to show the correct label
+                                    if (context[0].datasetIndex === 1) { // Aspects
+                                        return aspectLabels[context[0].dataIndex];
+                                    }
+                                    if (context[0].datasetIndex === 2) { // Alignment
+                                        return alignmentLabels[context[0].dataIndex];
+                                    }
+                                    return context[0].label;
+                                },
+
                                 label: function (context) {
-                                    const label = context.label || '';
+                                    let label = context.label || '';
+                                    let datasetTotal = data.totalGameCount; // Default to total games for Decks
+
+                                    if (context.datasetIndex === 1) {
+                                        label = aspectLabels[context.dataIndex];
+                                        datasetTotal = totalAspects;
+                                    } else if (context.datasetIndex === 2) {
+                                        label = alignmentLabels[context.dataIndex];
+                                        datasetTotal = totalAlignments;
+                                    }
+
                                     const value = context.parsed || 0;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = ((value / total) * 100).toFixed(1);
-                                    return `${label}: ${percentage}% (${value})`;
+                                    const percentage = ((value / datasetTotal) * 100).toFixed(1);
+                                    return `${label}: ${percentage}% (${value.toLocaleString()})`;
                                 }
                             }
                         }
