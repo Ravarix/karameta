@@ -384,6 +384,7 @@
         .trend-grid {
             display: flex;
             gap: 24px;
+            margin-bottom: 24px;
         }
 
         .trend-column {
@@ -666,9 +667,9 @@
                 .sort((a, b) => b.count - a.count);
 
             // Calculate Hot & Cold Trends
-            // Use 7-day window around start date for baseline smoothing
+            // Use 5-day window around start date for baseline smoothing
             const startWindowDates = [];
-            for (let i = -3; i <= 3; i++) {
+            for (let i = -2; i <= 2; i++) {
                 startWindowDates.push(addDays(startDate, i));
             }
 
@@ -678,7 +679,7 @@
             const endTotal = getTotalGamesForDate(endDate);
             const trendList = [];
 
-            // We relax the check: if startWindow has ANY data, we proceed. 
+            // We relax the check: if startWindow has ANY data, we proceed.
             // End date strict check remains.
             if (startWindowTotalGames > 0 && endTotal > 0) {
                 for (const [comboName, stats] of Object.entries(statsData.stats)) {
@@ -692,7 +693,7 @@
                     const startRate = (startComboCount / startWindowTotalGames) * 100;
                     const endRate = (endCount / endTotal) * 100;
 
-                    if (startComboCount / 7 < minGamesThreshold && endCount < minGamesThreshold) {
+                    if (startComboCount / 5 < minGamesThreshold && endCount < minGamesThreshold) {
                         continue;
                     }
 
@@ -872,21 +873,8 @@
                             <canvas id="trendChart"></canvas>
                         </div>
                     </div>
-
-                    <div class="chart-container">
-                        <h2 class="section-title">Distribution (Selection)</h2>
-                        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                            <div class="chart-wrapper" style="flex: 1; min-width: 300px;">
-                                <canvas id="pieChart"></canvas>
-                            </div>
-                            <div class="chart-wrapper" style="flex: 1; min-width: 300px;">
-                                <canvas id="basePieChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <h2 class="section-title" style="margin-bottom: 0; border: none;">Hot & Cold Trends</h2>
+                        <h2 class="section-title" style="margin-bottom: 0; border: none;">Hot & Cold</h2>
                         <div style="display: flex; gap: 12px; align-items: center;">
                             <div style="display: flex; align-items: center; gap: 8px; color: #a8b2d1; font-size: 14px;">
                                 <label for="minGamesInput">Min Games:</label>
@@ -908,6 +896,18 @@
                         <div class="trend-column">
                             <h3 class="trend-title">❄️ Cooling Down (Cold)</h3>
                             <div class="combo-list" id="coldList"></div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <h2 class="section-title">Distribution (Selection)</h2>
+                        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                            <div class="chart-wrapper" style="flex: 1; min-width: 300px;">
+                                <canvas id="pieChart"></canvas>
+                            </div>
+                            <div class="chart-wrapper" style="flex: 1; min-width: 300px;">
+                                <canvas id="basePieChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 `;
