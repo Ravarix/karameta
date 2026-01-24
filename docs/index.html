@@ -515,7 +515,7 @@
 
             // Add Base Aspect
             if (baseAspects[base]) {
-                aspects.add(baseAspects[base]);
+                baseAspects[base].forEach(a => aspects.add(a));
             }
             return aspects;
         }
@@ -593,7 +593,7 @@
             cardData = await resp.json();
 
             cardData.leaders.forEach(l => leaderAspects[l.name] = l.aspects);
-            cardData.bases.forEach(b => baseAspects[b.name] = b.aspect);
+            cardData.bases.forEach(b => baseAspects[b.name] = b.aspects);
         }
 
         async function loadStats() {
@@ -1118,7 +1118,7 @@
 
             // Colors based on Base Aspect
             const colors = labels.map(baseName => {
-                const aspect = baseAspects[baseName];
+                const aspect = baseAspects[baseName][0];
                 return ASPECT_COLORS[aspect] || '#a4b0be';
             });
 
