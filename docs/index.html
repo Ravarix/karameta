@@ -1118,8 +1118,8 @@
 
             // Colors based on Base Aspect
             const colors = labels.map(baseName => {
-                const aspect = baseAspects[baseName][0];
-                return ASPECT_COLORS[aspect] || '#a4b0be';
+                const aspects = baseAspects[baseName];
+                return aspects ? ASPECT_COLORS[aspects[0]] : '#a4b0be';
             });
 
             let aspectDistribution = {};
