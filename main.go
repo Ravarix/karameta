@@ -44,22 +44,17 @@ type LeaderBaseCombination struct {
 }
 
 type PlayRateStats struct {
-	mu      sync.RWMutex
-	Stats   map[LeaderBaseCombination]*CombinationStats `json:"-"`
-	Since   time.Time                                   `json:"since"`
-	LastRun time.Time                                   `json:"lastRun"`
+	mu    sync.RWMutex
+	Stats map[LeaderBaseCombination]*CombinationStats `json:"-"`
 }
 
 type CombinationStats struct {
-	Count       int            `json:"count"`
 	DailyCounts map[string]int `json:"dailyCounts"`
 }
 
 // playRateStatsJSON is a JSON-friendly version of PlayRateStats
 type playRateStatsJSON struct {
-	Stats   map[string]*CombinationStats `json:"stats"`
-	Since   time.Time                    `json:"since"`
-	LastRun time.Time                    `json:"lastRun"`
+	Stats map[string]*CombinationStats `json:"stats"`
 }
 
 // MarshalJSON implements custom JSON marshaling for PlayRateStats
@@ -75,9 +70,7 @@ func (p *PlayRateStats) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(playRateStatsJSON{
-		Stats:   statsMap,
-		Since:   p.Since,
-		LastRun: p.LastRun,
+		Stats: statsMap,
 	})
 }
 
@@ -102,9 +95,6 @@ func (p *PlayRateStats) UnmarshalJSON(data []byte) error {
 			p.Stats[combo] = stats
 		}
 	}
-
-	p.Since = jsonData.Since
-	p.LastRun = jsonData.LastRun
 
 	return nil
 }
@@ -239,8 +229,6 @@ func (s *Scraper) Scrape(ctx context.Context) error {
 		log.Printf("Warning: failed to save stats: %v", err)
 	}
 
-	s.stats.UpdateLastRun()
-
 	return nil
 }
 
@@ -270,7 +258,6 @@ func (s *Scraper) exportSummary(data interface{}, filename string) error {
 func NewPlayRateStats() *PlayRateStats {
 	return &PlayRateStats{
 		Stats: make(map[LeaderBaseCombination]*CombinationStats),
-		Since: time.Now(),
 	}
 }
 
@@ -318,7 +305,6 @@ func (p *PlayRateStats) AddGame(game Game) {
 			p.Stats[comboKey] = stats
 		}
 
-		stats.Count++
 		stats.DailyCounts[dayKey]++
 	}
 }
@@ -335,12 +321,6 @@ func (p *PlayRateStats) Save(path string) error {
 	return encoder.Encode(p)
 }
 
-func (p *PlayRateStats) UpdateLastRun() {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	p.LastRun = time.Now()
-}
-
 func LoadStats(path string) (*PlayRateStats, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -351,6 +331,87 @@ func LoadStats(path string) (*PlayRateStats, error) {
 	var stats PlayRateStats
 	if err := json.NewDecoder(file).Decode(&stats); err != nil {
 		return nil, err
+	}
+
+	// backfill fix
+	var asajjMap = map[LeaderBaseCombination]*CombinationStats{}
+	var quigonMap = map[LeaderBaseCombination]*CombinationStats{}
+	var darthMap = map[LeaderBaseCombination]*CombinationStats{}
+	var cassianMap = map[LeaderBaseCombination]*CombinationStats{}
+
+	for combo := range stats.Stats {
+		if combo.Leader == "Asajj" {
+			asajjMap[combo] = stats.Stats[combo]
+		}
+		if combo.Leader == "Darth" {
+			darthMap[combo] = stats.Stats[combo]
+		}
+		if combo.Leader == "Cassian" {
+			cassianMap[combo] = stats.Stats[combo]
+		}
+		if combo.Leader == "Qui" {
+			quigonMap[combo] = stats.Stats[combo]
+		}
+	}
+
+	for asajjCombo, asajjStats := range asajjMap {
+		var newCombo = LeaderBaseCombination{Leader: "Asajj_JTL", Base: asajjCombo.Base}
+		if existing, ok := stats.Stats[newCombo]; ok {
+			for day, count := range asajjStats.DailyCounts {
+				existing.DailyCounts[day] = count
+			}
+		} else {
+			stats.Stats[newCombo] = asajjStats
+		}
+	}
+
+	for darthCombo, darthStats := range darthMap {
+		var newCombo = LeaderBaseCombination{Leader: "Revan", Base: darthCombo.Base}
+		if existing, ok := stats.Stats[newCombo]; ok {
+			for day, count := range darthStats.DailyCounts {
+				existing.DailyCounts[day] = count
+			}
+		} else {
+			stats.Stats[newCombo] = darthStats
+		}
+	}
+
+	for cassianCombo, cassianStats := range cassianMap {
+		var newCombo = LeaderBaseCombination{Leader: "Cassian_SEC", Base: cassianCombo.Base}
+		if existing, ok := stats.Stats[newCombo]; ok {
+			for day, count := range cassianStats.DailyCounts {
+				existing.DailyCounts[day] = count
+			}
+		} else {
+			stats.Stats[newCombo] = cassianStats
+		}
+	}
+
+	for quiCombo, quiStats := range quigonMap {
+		var newCombo = LeaderBaseCombination{Leader: "Qui'gon", Base: quiCombo.Base}
+		if existing, ok := stats.Stats[newCombo]; ok {
+			for day, count := range quiStats.DailyCounts {
+				existing.DailyCounts[day] = count
+			}
+		} else {
+			stats.Stats[newCombo] = quiStats
+		}
+	}
+
+	for key := range asajjMap {
+		delete(stats.Stats, key)
+	}
+
+	for key := range cassianMap {
+		delete(stats.Stats, key)
+	}
+
+	for key := range darthMap {
+		delete(stats.Stats, key)
+	}
+
+	for key := range quigonMap {
+		delete(stats.Stats, key)
 	}
 
 	return &stats, nil
