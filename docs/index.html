@@ -510,7 +510,7 @@
         }
 
         function getAspectsByName(leaderName, baseName) {
-            return getAspects(leaderNameToId[leaderName], baseNameToId[baseName]);
+            return getAspects(leaderNameToId[leaderName.trim()], baseNameToId[baseName.trim()]);
         }
 
         function getAspects(leader, base) {
@@ -528,9 +528,14 @@
             return aspects;
         }
 
+        function reverseComboNameLookup(comboName) {
+            const [leader, base] = comboName.split('/');
+            return leaderNameToId[leader.trim()] + '/' + baseNameToId[base.trim()];
+        }
+
         function translateComboName(comboName) {
             const [leader, base] = comboName.split('/');
-            return leaderNames[leader] + '/' + baseNames[base];
+            return leaderNames[leader.trim()] + '/' + baseNames[base.trim()];
         }
 
         function getComboColor(leader, base) {
@@ -606,9 +611,10 @@
             cardData = await resp.json();
 
             cardData.leaders.forEach(l => {
+                const displayName = `${l.name}(${l.setName})`;
                 leaderAspects[l.id] = l.aspects;
-                leaderNames[l.id] = l.name;
-                leaderNameToId[l.name] = l.id;
+                leaderNames[l.id] = displayName;
+                leaderNameToId[displayName] = l.id;
             });
             cardData.bases.forEach(b => {
                 baseAspects[b.dataKey] = b.aspects
@@ -1019,7 +1025,7 @@
                                     const comboName = context.dataset.label || '';
                                     const date = context.chart.data.labels[context.dataIndex];
                                     const percentage = context.parsed.y;
-                                    const stats = statsData.stats[comboName];
+                                    const stats = statsData.stats[reverseComboNameLookup(comboName)];
                                     const count = stats?.dailyCounts?.[date] || 0;
                                     return `${comboName}: ${percentage.toFixed(2)}% (${count.toLocaleString()})`;
                                 }
@@ -1060,7 +1066,7 @@
 
             data.topCombinations.forEach(c => {
                 if (c.percentage > 0.1) {
-                    labels.push(`${leaderNames[c.combination.leader]}/${baseNames[c.combination.base]}`);
+                    labels.push(`${leaderNames[c.combination.leader]} / ${baseNames[c.combination.base]}`);
                     values.push(c.count);
                     deckColors.push(getComboColor(c.combination.leader, c.combination.base));
                 } else {
@@ -1223,7 +1229,7 @@
                                 pieChartInstance.data.labels.forEach((label, i) => {
                                     const parts = label.split('/');
                                     // Check if label matches "Leader/Base" format and Base matches
-                                    if (parts.length === 2 && parts[1] === baseNames[baseName]) {
+                                    if (parts.length === 2 && parts[1].trim() === baseNames[baseName]) {
                                         activeElements.push({ datasetIndex: 0, index: i });
                                     }
                                 });
