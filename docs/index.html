@@ -466,6 +466,10 @@
         let cardData = null;
         let leaderAspects = {};
         let baseAspects = {};
+        let leaderNames = {};
+        let baseNames = {};
+        let leaderNameToId = {};
+        let baseNameToId = {};
         let trendCalculationMode = 'absolute'; // 'absolute' or 'relative'
         let minGamesThreshold = 30;
         const ghRoot = 'https://raw.githubusercontent.com/Ravarix/karameta/refs/heads/main/';
@@ -505,6 +509,10 @@
             return d.toISOString().split('T')[0];
         }
 
+        function getAspectsByName(leaderName, baseName) {
+            return getAspects(leaderNameToId[leaderName], baseNameToId[baseName]);
+        }
+
         function getAspects(leader, base) {
             const aspects = new Set();
 
@@ -518,6 +526,11 @@
                 baseAspects[base].forEach(a => aspects.add(a));
             }
             return aspects;
+        }
+
+        function translateComboName(comboName) {
+            const [leader, base] = comboName.split('/');
+            return leaderNames[leader] + '/' + baseNames[base];
         }
 
         function getComboColor(leader, base) {
@@ -592,8 +605,16 @@
             if (!resp.ok) throw new Error("Failed to load cards.json");
             cardData = await resp.json();
 
-            cardData.leaders.forEach(l => leaderAspects[l.name] = l.aspects);
-            cardData.bases.forEach(b => baseAspects[b.name] = b.aspects);
+            cardData.leaders.forEach(l => {
+                leaderAspects[l.id] = l.aspects;
+                leaderNames[l.id] = l.name;
+                leaderNameToId[l.name] = l.id;
+            });
+            cardData.bases.forEach(b => {
+                baseAspects[b.dataKey] = b.aspects
+                baseNames[b.dataKey] = b.name;
+                baseNameToId[b.name] = b.dataKey;
+            });
         }
 
         async function loadStats() {
@@ -742,10 +763,10 @@
             }
         }
 
-        function processTrendData(comboNames, startDate, endDate) {
+        function processTrendData(comboKeys, startDate, endDate) {
             // Collect all unique dates in the range that have data
             const allDates = new Set();
-            comboNames.forEach(name => {
+            comboKeys.forEach(name => {
                 const stats = statsData.stats[name];
                 if (stats) {
                     Object.keys(stats.dailyCounts).forEach(d => {
@@ -755,7 +776,7 @@
             });
             const sortedDates = Array.from(allDates).sort();
 
-            const datasets = comboNames.map((name, idx) => {
+            const datasets = comboKeys.map((name, idx) => {
                 const stats = statsData.stats[name];
                 const dataPoints = sortedDates.map(date => {
                     // To get percentage, we need the total games for that specific day
@@ -771,7 +792,7 @@
                 const color = getComboColor(leader, base);
 
                 return {
-                    label: name,
+                    label: leaderNames[leader] + '/' + baseNames[base],
                     data: dataPoints,
                     borderColor: color,
                     backgroundColor: color,
@@ -826,8 +847,6 @@
             const container = document.getElementById('comboSelect');
             container.innerHTML = '';
 
-            // Limit to top 50 for UI performance in the dropdown, or maybe all if not too many
-            // There are many combos. Let's show all but use a simple custom dropdown
 
             // Improved MultiSelect UI
             const wrapper = document.createElement('div');
@@ -847,7 +866,7 @@
                 cb.addEventListener('change', updateView);
 
                 const text = document.createElement('span');
-                text.textContent = combo;
+                text.textContent = translateComboName(combo);
 
                 label.appendChild(cb);
                 label.appendChild(text);
@@ -935,7 +954,7 @@
                     <div class="combo-item" style="cursor: pointer;" onclick="addComboToTrend('${escapedName}')" title="Click to add to trends">
                         <div class="combo-rank" style="font-size: 18px;">${i + 1}</div>
                         <div class="combo-info">
-                            <div class="combo-name">${leader} / ${base}</div>
+                            <div class="combo-name">${leaderNames[leader]} / ${baseNames[base]}</div>
                             <div class="combo-details">
                             Start: ${item.startRate.toFixed(1)}% → End: ${item.endRate.toFixed(1)}%
                             </div>
@@ -1037,11 +1056,13 @@
             let others = 0;
             const labels = [];
             const values = [];
+            const deckColors = []
 
             data.topCombinations.forEach(c => {
                 if (c.percentage > 0.1) {
-                    labels.push(`${c.combination.leader}/${c.combination.base}`);
+                    labels.push(`${leaderNames[c.combination.leader]}/${baseNames[c.combination.base]}`);
                     values.push(c.count);
+                    deckColors.push(getComboColor(c.combination.leader, c.combination.base));
                 } else {
                     others += c.count;
                 }
@@ -1050,13 +1071,14 @@
             if (others > 0) {
                 labels.push('Others');
                 values.push(others);
+                deckColors.push(getComboColor("na", "bro"));
             }
 
-            // Generate Colors for Decks
-            const deckColors = labels.map(label => {
-                const [leader, base] = label.split('/');
-                return getComboColor(leader, base);
-            });
+            // // Generate Colors for Decks
+            // const deckColors = labels.map(label => {
+            //     const [leader, base] = label.split('/');
+            //     return getComboColor(leader, base);
+            // });
 
             pieChartInstance = new Chart(ctx, {
                 type: 'doughnut',
@@ -1201,7 +1223,7 @@
                                 pieChartInstance.data.labels.forEach((label, i) => {
                                     const parts = label.split('/');
                                     // Check if label matches "Leader/Base" format and Base matches
-                                    if (parts.length === 2 && parts[1] === baseName) {
+                                    if (parts.length === 2 && parts[1] === baseNames[baseName]) {
                                         activeElements.push({ datasetIndex: 0, index: i });
                                     }
                                 });
@@ -1212,7 +1234,7 @@
                                     const parts = label.split('/');
                                     // Check if label matches "Leader/Base" format and Aspect matches
                                     if (parts.length === 2) {
-                                        const aspects = getAspects(parts[0], parts[1]);
+                                        const aspects = getAspectsByName(parts[0], parts[1]);
                                         if (aspects.has(aspectName)) {
                                             activeElements.push({ datasetIndex: 0, index: i });
                                         }
@@ -1225,7 +1247,7 @@
                                     const parts = label.split('/');
                                     // Check if label matches "Leader/Base" format and Aspect matches
                                     if (parts.length === 2) {
-                                        const aspects = getAspects(parts[0], parts[1]);
+                                        const aspects = getAspectsByName(parts[0], parts[1]);
                                         if (aspects.has(alignmentName)) {
                                             activeElements.push({ datasetIndex: 0, index: i });
                                         }
@@ -1259,11 +1281,11 @@
                                     if (context[0].datasetIndex === 2) { // Alignment
                                         return alignmentLabels[context[0].dataIndex];
                                     }
-                                    return context[0].label;
+                                    return baseNames[context[0].label];
                                 },
 
                                 label: function (context) {
-                                    let label = context.label || '';
+                                    let label = baseNames[context.label] || '';
                                     let datasetTotal = data.totalGameCount; // Default to total games for Decks
 
                                     if (context.datasetIndex === 1) {
