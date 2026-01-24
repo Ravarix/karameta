@@ -280,7 +280,7 @@ func (p *PlayRateStats) AddGame(game Game) {
 	}
 
 	for _, combo := range combinations {
-		comboKey := LeaderBaseCombination{Leader: combo.leader.Name, Base: combo.base.DataKey}
+		comboKey := LeaderBaseCombination{Leader: combo.leader.ID, Base: combo.base.DataKey}
 		stats, exists := p.Stats[comboKey]
 
 		// Build aspects set, filtering out "Unknown" and empty
