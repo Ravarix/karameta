@@ -103,7 +103,7 @@ func (b Base) Info() BaseInfo {
 	if info, ok := baseMap[b.ID]; ok {
 		return info
 	}
-	return BaseInfo{b.ID, b.ID, "Unknown"}
+	return BaseInfo{b.ID, b.ID, b.ID, "Unknown"}
 }
 
 func (l Leader) Info() LeaderInfo {
@@ -136,7 +136,8 @@ type Config struct {
 	StatsFilePath string
 	ExportDir     string
 	HTTPTimeout   time.Duration
-	Mode          string // "scrape", "export-daily", or "export-weekly"
+	Mode          string
+	DedupGames    bool
 }
 
 type Scraper struct {
@@ -154,6 +155,7 @@ func NewConfig() Config {
 		ExportDir:     getEnv("EXPORT_DIR", DefaultExportDir),
 		HTTPTimeout:   30 * time.Second,
 		Mode:          getEnv("MODE", "scrape"),
+		DedupGames:    getEnv("DEDUP_GAMES", "false") == "true",
 	}
 }
 
@@ -211,11 +213,11 @@ func (s *Scraper) Scrape(ctx context.Context) error {
 
 	newGames := 0
 	for _, game := range apiResp.OngoingGames {
-		if !s.bloomFilter.TestAndAdd(game.ID) {
-			// New game, not seen before
-			s.stats.AddGame(game)
-			newGames++
+		if s.config.DedupGames && s.bloomFilter.TestAndAdd(game.ID) {
+			continue // seen game before
 		}
+		s.stats.AddGame(game)
+		newGames++
 	}
 
 	log.Printf("Scrape complete: %d total games, %d new games", len(apiResp.OngoingGames), newGames)
@@ -278,7 +280,7 @@ func (p *PlayRateStats) AddGame(game Game) {
 	}
 
 	for _, combo := range combinations {
-		comboKey := LeaderBaseCombination{Leader: combo.leader.Name, Base: combo.base.Name}
+		comboKey := LeaderBaseCombination{Leader: combo.leader.Name, Base: combo.base.DataKey}
 		stats, exists := p.Stats[comboKey]
 
 		// Build aspects set, filtering out "Unknown" and empty

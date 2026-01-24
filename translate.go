@@ -18,9 +18,10 @@ type LeaderInfo struct {
 }
 
 type BaseInfo struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
-	Aspect string `json:"aspect"`
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	DataKey string `json:"dataKey"`
+	Aspect  string `json:"aspect"`
 }
 
 //go:embed data/cards.json
