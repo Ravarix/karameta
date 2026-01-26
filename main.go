@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -99,19 +100,19 @@ func (p *PlayRateStats) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (b Base) Info() BaseInfo {
+func (b Base) Info() (BaseInfo, error) {
 	if info, ok := baseMap[b.ID]; ok {
-		return info
+		return info, nil
 	}
-	return BaseInfo{b.ID, b.ID, b.ID, "Unknown"}
+	return BaseInfo{}, fmt.Errorf("unknown base ID: %s", b.ID)
 }
 
-func (l Leader) Info() LeaderInfo {
+func (l Leader) Info() (LeaderInfo, error) {
 	if info, ok := leaderMap[l.ID]; ok {
-		return info
+		return info, nil
 	}
-	log.Printf("Warning: unknown leader ID: %s", l.ID)
-	return LeaderInfo{l.ID, l.ID, []string{"Unknown"}}
+
+	return LeaderInfo{}, fmt.Errorf("unknown leader ID: %s", l.ID)
 }
 
 // splitLeaderBase splits a "leader/base" string into parts
@@ -212,12 +213,24 @@ func (s *Scraper) Scrape(ctx context.Context) error {
 	}
 
 	newGames := 0
+	errMap := make(map[string]struct{})
 	for _, game := range apiResp.OngoingGames {
 		if s.config.DedupGames && s.bloomFilter.TestAndAdd(game.ID) {
 			continue // seen game before
 		}
-		s.stats.AddGame(game)
+		errs := s.stats.AddGame(game)
+		if errs != nil {
+			if uw, ok := err.(interface{ Unwrap() []error }); ok {
+				for _, err := range uw.Unwrap() {
+					errMap[err.Error()] = struct{}{}
+				}
+			}
+		}
 		newGames++
+	}
+
+	for err := range errMap {
+		log.Printf("::warning::%v", err)
 	}
 
 	log.Printf("Scrape complete: %d total games, %d new games", len(apiResp.OngoingGames), newGames)
@@ -263,7 +276,7 @@ func NewPlayRateStats() *PlayRateStats {
 	}
 }
 
-func (p *PlayRateStats) AddGame(game Game) {
+func (p *PlayRateStats) AddGame(game Game) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -271,34 +284,23 @@ func (p *PlayRateStats) AddGame(game Game) {
 	dayKey := now.Format("2006-01-02")
 
 	// Track both player combinations, extracting IDs from nested objects
-	combinations := []struct {
-		leader LeaderInfo
-		base   BaseInfo
-	}{
-		{leader: game.Player1Leader.Info(), base: game.Player1Base.Info()},
-		{leader: game.Player2Leader.Info(), base: game.Player2Base.Info()},
+	p1Leader, err1 := game.Player1Leader.Info()
+	p2Leader, err2 := game.Player2Leader.Info()
+	p1Base, err3 := game.Player1Base.Info()
+	p2Base, err4 := game.Player2Base.Info()
+	if errs := errors.Join(err1, err2, err3, err4); errs != nil {
+		return errs
 	}
 
-	for _, combo := range combinations {
-		comboKey := LeaderBaseCombination{Leader: combo.leader.ID, Base: combo.base.DataKey}
+	for _, combo := range []struct {
+		LeaderInfo
+		BaseInfo
+	}{
+		{p1Leader, p1Base},
+		{p2Leader, p2Base},
+	} {
+		comboKey := LeaderBaseCombination{Leader: combo.LeaderInfo.ID, Base: combo.BaseInfo.DataKey}
 		stats, exists := p.Stats[comboKey]
-
-		// Build aspects set, filtering out "Unknown" and empty
-		aspects := make(map[string]struct{})
-		for _, aspect := range combo.leader.Aspects {
-			if aspect != "" && aspect != "Unknown" {
-				aspects[aspect] = struct{}{}
-			}
-		}
-		if combo.base.Aspect != "" && combo.base.Aspect != "Unknown" {
-			aspects[combo.base.Aspect] = struct{}{}
-		}
-
-		// Convert to sorted array
-		aspectArray := make([]string, 0, len(aspects))
-		for aspect := range aspects {
-			aspectArray = append(aspectArray, aspect)
-		}
 
 		if !exists {
 			stats = &CombinationStats{
@@ -309,6 +311,8 @@ func (p *PlayRateStats) AddGame(game Game) {
 
 		stats.DailyCounts[dayKey]++
 	}
+
+	return nil
 }
 
 func (p *PlayRateStats) Save(path string) error {
