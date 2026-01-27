@@ -571,8 +571,8 @@
 
                 if (dates.length > 0) {
                     const lastDate = dates[dates.length - 1];
-                    // Default to last 14 days
-                    const firstDate = dates[Math.max(0, dates.length - 14)];
+                    // Default to last 7 days
+                    const firstDate = dates[Math.max(0, dates.length - 7)];
 
                     document.getElementById('endDate').value = lastDate;
                     document.getElementById('startDate').value = firstDate;
@@ -617,7 +617,6 @@
         }
 
         async function loadStats() {
-            // In a real scenario, this might be large, but we're doing it client side as requested
             const resp = await fetch(ghRoot + 'data/stats.json?t=' + Date.now());
             if (!resp.ok) throw new Error("Failed to load stats.json");
             statsData = await resp.json();

@@ -156,7 +156,7 @@ func NewConfig() Config {
 		ExportDir:     getEnv("EXPORT_DIR", DefaultExportDir),
 		HTTPTimeout:   30 * time.Second,
 		Mode:          getEnv("MODE", "scrape"),
-		DedupGames:    getEnv("DEDUP_GAMES", "false") == "true",
+		DedupGames:    getEnv("DEDUP_GAMES", "true") == "true",
 	}
 }
 
@@ -230,6 +230,7 @@ func (s *Scraper) Scrape(ctx context.Context) error {
 	}
 
 	for err := range errMap {
+		// Log parsing errors as github warnings
 		log.Printf("::warning::%v", err)
 	}
 
