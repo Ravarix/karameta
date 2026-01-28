@@ -1,4 +1,4 @@
-name: Scrape Game Data
+name: scrape
 
 on:
   schedule:
@@ -14,7 +14,7 @@ on:
       - 'go.sum'
 concurrency:
   group: scrape
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   scrape:

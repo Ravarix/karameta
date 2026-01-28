@@ -73,11 +73,11 @@ type playtimeStatsJSON struct {
 
 type TrackedGame struct {
 	Game      Game      `json:"game"`
-	StartTime time.Time `json:"startTime,format:date-time"`
+	StartTime time.Time `json:"startTime"`
 }
 
 type OngoingGames struct {
-	Timestamp time.Time               `json:"timestamp,format:date-time"`
+	Timestamp time.Time               `json:"timestamp"`
 	Games     map[string]*TrackedGame `json:"games"`
 }
 
