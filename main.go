@@ -45,7 +45,7 @@ type LeaderBaseCombination struct {
 	Base   string `json:"base"`
 }
 
-type PlayRateStats struct {
+type GameStats struct {
 	mu    sync.RWMutex
 	Stats map[LeaderBaseCombination]*CombinationStats `json:"-"`
 }
@@ -54,21 +54,8 @@ type CombinationStats struct {
 	DailyCounts map[string]int `json:"dailyCounts"`
 }
 
-type playRateStatsJSON struct {
+type gameStatsJSON struct {
 	Stats map[string]*CombinationStats `json:"stats"`
-}
-
-type PlaytimeStats struct {
-	mu    sync.RWMutex
-	Stats map[LeaderBaseCombination]*CombinationPlaytimeStats `json:"-"`
-}
-
-type CombinationPlaytimeStats struct {
-	DailyPlaytime map[string]int `json:"dailyPlaytime"` // in minutes
-}
-
-type playtimeStatsJSON struct {
-	Stats map[string]*CombinationPlaytimeStats `json:"stats"`
 }
 
 type TrackedGame struct {
@@ -81,8 +68,8 @@ type OngoingGames struct {
 	Games     map[string]*TrackedGame `json:"games"`
 }
 
-// MarshalJSON implements custom JSON marshaling for PlayRateStats
-func (p *PlayRateStats) MarshalJSON() ([]byte, error) {
+// MarshalJSON implements custom JSON marshaling for GameStats
+func (p *GameStats) MarshalJSON() ([]byte, error) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
@@ -93,62 +80,20 @@ func (p *PlayRateStats) MarshalJSON() ([]byte, error) {
 		statsMap[key] = stats
 	}
 
-	return json.Marshal(playRateStatsJSON{
+	return json.Marshal(gameStatsJSON{
 		Stats: statsMap,
 	})
 }
 
-// UnmarshalJSON implements custom JSON unmarshaling for PlayRateStats
-func (p *PlayRateStats) UnmarshalJSON(data []byte) error {
-	var jsonData playRateStatsJSON
+// UnmarshalJSON implements custom JSON unmarshaling for GameStats
+func (p *GameStats) UnmarshalJSON(data []byte) error {
+	var jsonData gameStatsJSON
 	if err := json.Unmarshal(data, &jsonData); err != nil {
 		return err
 	}
 
 	// Convert map with string keys back to map with struct keys
 	p.Stats = make(map[LeaderBaseCombination]*CombinationStats)
-	for key, stats := range jsonData.Stats {
-		// Parse "leader/base" format
-		parts := splitLeaderBase(key)
-		if len(parts) == 2 {
-			combo := LeaderBaseCombination{
-				Leader: parts[0],
-				Base:   parts[1],
-			}
-
-			p.Stats[combo] = stats
-		}
-	}
-
-	return nil
-}
-
-// MarshalJSON implements custom JSON marshaling for PlaytimeStats
-func (p *PlaytimeStats) MarshalJSON() ([]byte, error) {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	// Convert map with struct keys to map with string keys
-	statsMap := make(map[string]*CombinationPlaytimeStats)
-	for combo, stats := range p.Stats {
-		key := fmt.Sprintf("%s/%s", combo.Leader, combo.Base)
-		statsMap[key] = stats
-	}
-
-	return json.Marshal(playtimeStatsJSON{
-		Stats: statsMap,
-	})
-}
-
-// UnmarshalJSON implements custom JSON unmarshaling for PlaytimeStats
-func (p *PlaytimeStats) UnmarshalJSON(data []byte) error {
-	var jsonData playtimeStatsJSON
-	if err := json.Unmarshal(data, &jsonData); err != nil {
-		return err
-	}
-
-	// Convert map with string keys back to map with struct keys
-	p.Stats = make(map[LeaderBaseCombination]*CombinationPlaytimeStats)
 	for key, stats := range jsonData.Stats {
 		// Parse "leader/base" format
 		parts := splitLeaderBase(key)
@@ -211,8 +156,8 @@ type Config struct {
 type Scraper struct {
 	config        Config
 	client        *http.Client
-	stats         *PlayRateStats
-	playtimeStats *PlaytimeStats
+	stats         *GameStats
+	playtimeStats *GameStats
 	ongoingGames  *OngoingGames
 }
 
@@ -240,13 +185,13 @@ func NewScraper(config Config) (*Scraper, error) {
 	stats, err := LoadStats(config.StatsFilePath)
 	if err != nil {
 		log.Printf("No existing stats found, starting fresh: %v", err)
-		stats = NewPlayRateStats()
+		stats = NewGameStats()
 	}
 
-	playtimeStats, err := LoadPlaytimeStats(config.PlaytimeStatsFilePath)
+	playtimeStats, err := LoadStats(config.PlaytimeStatsFilePath)
 	if err != nil {
 		log.Printf("No existing playtime stats found, starting fresh: %v", err)
-		playtimeStats = NewPlaytimeStats()
+		playtimeStats = NewGameStats()
 	}
 
 	scraper := &Scraper{
@@ -319,9 +264,8 @@ func (s *Scraper) Scrape(ctx context.Context) error {
 		if _, ok := currentGames[id]; !ok {
 			// Game ended
 			duration := s.ongoingGames.Timestamp.Sub(tg.StartTime)
-			minutes := int(duration.Minutes())
-			if minutes >= 1 {
-				if err := s.playtimeStats.AddPlaytime(tg.Game, minutes); err != nil {
+			if duration >= time.Minute {
+				if err := s.playtimeStats.AddPlaytime(tg.Game, int(duration.Minutes())); err != nil {
 					if uw, ok := err.(interface{ Unwrap() []error }); ok {
 						for _, err := range uw.Unwrap() {
 							errMap[err.Error()] = struct{}{}
@@ -423,19 +367,13 @@ func (s *Scraper) SaveOngoingGames() error {
 	return encoder.Encode(s.ongoingGames)
 }
 
-func NewPlayRateStats() *PlayRateStats {
-	return &PlayRateStats{
+func NewGameStats() *GameStats {
+	return &GameStats{
 		Stats: make(map[LeaderBaseCombination]*CombinationStats),
 	}
 }
 
-func NewPlaytimeStats() *PlaytimeStats {
-	return &PlaytimeStats{
-		Stats: make(map[LeaderBaseCombination]*CombinationPlaytimeStats),
-	}
-}
-
-func (p *PlayRateStats) AddGame(game Game) error {
+func (p *GameStats) AddGame(game Game) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -474,7 +412,7 @@ func (p *PlayRateStats) AddGame(game Game) error {
 	return nil
 }
 
-func (p *PlaytimeStats) AddPlaytime(game Game, minutes int) error {
+func (p *GameStats) AddPlaytime(game Game, minutes int) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -501,19 +439,19 @@ func (p *PlaytimeStats) AddPlaytime(game Game, minutes int) error {
 		stats, exists := p.Stats[comboKey]
 
 		if !exists {
-			stats = &CombinationPlaytimeStats{
-				DailyPlaytime: make(map[string]int),
+			stats = &CombinationStats{
+				DailyCounts: make(map[string]int),
 			}
 			p.Stats[comboKey] = stats
 		}
 
-		stats.DailyPlaytime[dayKey] += minutes
+		stats.DailyCounts[dayKey] += minutes
 	}
 
 	return nil
 }
 
-func (p *PlayRateStats) Save(path string) error {
+func (p *GameStats) Save(path string) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return err
@@ -525,41 +463,14 @@ func (p *PlayRateStats) Save(path string) error {
 	return encoder.Encode(p)
 }
 
-func (p *PlaytimeStats) Save(path string) error {
-	file, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "  ")
-	return encoder.Encode(p)
-}
-
-func LoadStats(path string) (*PlayRateStats, error) {
+func LoadStats(path string) (*GameStats, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	var stats PlayRateStats
-	if err := json.NewDecoder(file).Decode(&stats); err != nil {
-		return nil, err
-	}
-
-	return &stats, nil
-}
-
-func LoadPlaytimeStats(path string) (*PlaytimeStats, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	var stats PlaytimeStats
+	var stats GameStats
 	if err := json.NewDecoder(file).Decode(&stats); err != nil {
 		return nil, err
 	}
