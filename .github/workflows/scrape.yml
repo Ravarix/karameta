@@ -12,6 +12,9 @@ on:
       - '**.go'
       - 'go.mod'
       - 'go.sum'
+concurrency:
+  group: scrape
+  cancel-in-progress: true
 
 jobs:
   scrape:
@@ -37,6 +40,7 @@ jobs:
       - name: Run scraper
         env:
           MODE: scrape
+          GOEXPERIMENT: jsonv2
         run: go run .
 
       - name: Commit and push if changed

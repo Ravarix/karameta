@@ -5,9 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2bd6e784-6450-4d7a-b69a-c0ea7b1c6b7c" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.github/workflows/scrape.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/scrape.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/cards.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/cards.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bloom_filter.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/bloom_filter.dat" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -49,6 +50,7 @@
   &quot;keyToString&quot;: {
     &quot;DefaultGoTemplateProperty&quot;: &quot;Go File&quot;,
     &quot;Go Build.go build Karameta.executor&quot;: &quot;Debug&quot;,
+    &quot;Go Test.TestScrape in Karameta (1).executor&quot;: &quot;Run&quot;,
     &quot;Go Test.TestScrape in Karameta.executor&quot;: &quot;Run&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.GoLinterPluginOnboarding&quot;: &quot;true&quot;,
@@ -79,7 +81,7 @@
       <recent name="C:\Dev\karameta\data\daily" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.TestScrape in Karameta">
+  <component name="RunManager" selected="Go Test.TestScrape in Karameta (2)">
     <configuration name="go build Karameta" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="Karameta" />
       <working_directory value="$PROJECT_DIR$" />
@@ -90,6 +92,28 @@
       <package value="Karameta" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$/main.go" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestScrape in Karameta (1)" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="Karameta" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="Karameta" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestScrape\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestScrape in Karameta (2)" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="Karameta" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="Karameta" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestScrape\E$" />
       <method v="2" />
     </configuration>
     <configuration name="TestScrape in Karameta" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -105,6 +129,8 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.TestScrape in Karameta (2)" />
+        <item itemvalue="Go Test.TestScrape in Karameta (1)" />
         <item itemvalue="Go Test.TestScrape in Karameta" />
         <item itemvalue="Go Build.go build Karameta" />
       </list>

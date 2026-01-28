@@ -13,10 +13,11 @@ import (
 )
 
 const (
-	DefaultAPIURL        = "https://api.karabast.net/api/ongoing-games"
-	DefaultBloomFilePath = "./data/bloom_filter.dat"
-	DefaultStatsFilePath = "./data/stats.json"
-	DefaultExportDir     = "./data"
+	DefaultAPIURL                = "https://api.karabast.net/api/ongoing-games"
+	DefaultStatsFilePath         = "./data/stats.json"
+	DefaultPlaytimeStatsFilePath = "./data/playtime_stats.json"
+	DefaultOngoingGamesFilePath  = "./data/ongoing_games.json"
+	DefaultExportDir             = "./data"
 )
 
 type Leader struct {
@@ -53,9 +54,31 @@ type CombinationStats struct {
 	DailyCounts map[string]int `json:"dailyCounts"`
 }
 
-// playRateStatsJSON is a JSON-friendly version of PlayRateStats
 type playRateStatsJSON struct {
 	Stats map[string]*CombinationStats `json:"stats"`
+}
+
+type PlaytimeStats struct {
+	mu    sync.RWMutex
+	Stats map[LeaderBaseCombination]*CombinationPlaytimeStats `json:"-"`
+}
+
+type CombinationPlaytimeStats struct {
+	DailyPlaytime map[string]int `json:"dailyPlaytime"` // in minutes
+}
+
+type playtimeStatsJSON struct {
+	Stats map[string]*CombinationPlaytimeStats `json:"stats"`
+}
+
+type TrackedGame struct {
+	Game      Game      `json:"game"`
+	StartTime time.Time `json:"startTime,format:date-time"`
+}
+
+type OngoingGames struct {
+	Timestamp time.Time               `json:"timestamp,format:date-time"`
+	Games     map[string]*TrackedGame `json:"games"`
 }
 
 // MarshalJSON implements custom JSON marshaling for PlayRateStats
@@ -84,6 +107,48 @@ func (p *PlayRateStats) UnmarshalJSON(data []byte) error {
 
 	// Convert map with string keys back to map with struct keys
 	p.Stats = make(map[LeaderBaseCombination]*CombinationStats)
+	for key, stats := range jsonData.Stats {
+		// Parse "leader/base" format
+		parts := splitLeaderBase(key)
+		if len(parts) == 2 {
+			combo := LeaderBaseCombination{
+				Leader: parts[0],
+				Base:   parts[1],
+			}
+
+			p.Stats[combo] = stats
+		}
+	}
+
+	return nil
+}
+
+// MarshalJSON implements custom JSON marshaling for PlaytimeStats
+func (p *PlaytimeStats) MarshalJSON() ([]byte, error) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	// Convert map with struct keys to map with string keys
+	statsMap := make(map[string]*CombinationPlaytimeStats)
+	for combo, stats := range p.Stats {
+		key := fmt.Sprintf("%s/%s", combo.Leader, combo.Base)
+		statsMap[key] = stats
+	}
+
+	return json.Marshal(playtimeStatsJSON{
+		Stats: statsMap,
+	})
+}
+
+// UnmarshalJSON implements custom JSON unmarshaling for PlaytimeStats
+func (p *PlaytimeStats) UnmarshalJSON(data []byte) error {
+	var jsonData playtimeStatsJSON
+	if err := json.Unmarshal(data, &jsonData); err != nil {
+		return err
+	}
+
+	// Convert map with string keys back to map with struct keys
+	p.Stats = make(map[LeaderBaseCombination]*CombinationPlaytimeStats)
 	for key, stats := range jsonData.Stats {
 		// Parse "leader/base" format
 		parts := splitLeaderBase(key)
@@ -132,31 +197,35 @@ func getNormalizedTime() time.Time {
 }
 
 type Config struct {
-	APIURL        string
-	BloomFilePath string
-	StatsFilePath string
-	ExportDir     string
-	HTTPTimeout   time.Duration
-	Mode          string
-	DedupGames    bool
+	APIURL                string
+	BloomFilePath         string
+	StatsFilePath         string
+	PlaytimeStatsFilePath string
+	OngoingGamesFilePath  string
+	ExportDir             string
+	HTTPTimeout           time.Duration
+	Mode                  string
+	DedupGames            bool
 }
 
 type Scraper struct {
-	config      Config
-	client      *http.Client
-	bloomFilter *StableBloomFilter
-	stats       *PlayRateStats
+	config        Config
+	client        *http.Client
+	stats         *PlayRateStats
+	playtimeStats *PlaytimeStats
+	ongoingGames  *OngoingGames
 }
 
 func NewConfig() Config {
 	return Config{
-		APIURL:        getEnv("API_URL", DefaultAPIURL),
-		BloomFilePath: getEnv("BLOOM_FILE_PATH", DefaultBloomFilePath),
-		StatsFilePath: getEnv("STATS_FILE_PATH", DefaultStatsFilePath),
-		ExportDir:     getEnv("EXPORT_DIR", DefaultExportDir),
-		HTTPTimeout:   30 * time.Second,
-		Mode:          getEnv("MODE", "scrape"),
-		DedupGames:    getEnv("DEDUP_GAMES", "true") == "true",
+		APIURL:                getEnv("API_URL", DefaultAPIURL),
+		StatsFilePath:         getEnv("STATS_FILE_PATH", DefaultStatsFilePath),
+		PlaytimeStatsFilePath: getEnv("PLAYTIME_STATS_FILE_PATH", DefaultPlaytimeStatsFilePath),
+		OngoingGamesFilePath:  getEnv("ONGOING_GAMES_FILE_PATH", DefaultOngoingGamesFilePath),
+		ExportDir:             getEnv("EXPORT_DIR", DefaultExportDir),
+		HTTPTimeout:           30 * time.Second,
+		Mode:                  getEnv("MODE", "scrape"),
+		DedupGames:            getEnv("DEDUP_GAMES", "true") == "true",
 	}
 }
 
@@ -168,25 +237,35 @@ func getEnv(key, defaultValue string) string {
 }
 
 func NewScraper(config Config) (*Scraper, error) {
-	bloomFilter, err := NewStableBloomFilter(config.BloomFilePath, 1000000, 0.01)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create bloom filter: %w", err)
-	}
-
 	stats, err := LoadStats(config.StatsFilePath)
 	if err != nil {
 		log.Printf("No existing stats found, starting fresh: %v", err)
 		stats = NewPlayRateStats()
 	}
 
-	return &Scraper{
+	playtimeStats, err := LoadPlaytimeStats(config.PlaytimeStatsFilePath)
+	if err != nil {
+		log.Printf("No existing playtime stats found, starting fresh: %v", err)
+		playtimeStats = NewPlaytimeStats()
+	}
+
+	scraper := &Scraper{
 		config: config,
 		client: &http.Client{
 			Timeout: config.HTTPTimeout,
 		},
-		bloomFilter: bloomFilter,
-		stats:       stats,
-	}, nil
+		stats:         stats,
+		playtimeStats: playtimeStats,
+	}
+
+	if err := scraper.LoadOngoingGames(); err != nil {
+		log.Printf("Warning: failed to load ongoing games, starting fresh: %v", err)
+		scraper.ongoingGames = &OngoingGames{
+			Games: make(map[string]*TrackedGame),
+		}
+	}
+
+	return scraper, nil
 }
 
 func (s *Scraper) Scrape(ctx context.Context) error {
@@ -214,13 +293,17 @@ func (s *Scraper) Scrape(ctx context.Context) error {
 
 	newGames := 0
 	errMap := make(map[string]struct{})
+	currentGames := make(map[string]struct{})
 	for _, game := range apiResp.OngoingGames {
-		if s.config.DedupGames && s.bloomFilter.TestAndAdd(game.ID) {
-			continue // seen game before
+		currentGames[game.ID] = struct{}{}
+		if s.config.DedupGames {
+			if _, ok := s.ongoingGames.Games[game.ID]; ok {
+				continue // seen game before
+			}
 		}
 		errs := s.stats.AddGame(game)
 		if errs != nil {
-			if uw, ok := err.(interface{ Unwrap() []error }); ok {
+			if uw, ok := errs.(interface{ Unwrap() []error }); ok {
 				for _, err := range uw.Unwrap() {
 					errMap[err.Error()] = struct{}{}
 				}
@@ -229,23 +312,61 @@ func (s *Scraper) Scrape(ctx context.Context) error {
 		newGames++
 	}
 
+	// Identify finished games
+	now := getNormalizedTime()
+	finishedCount := 0
+	for id, tg := range s.ongoingGames.Games {
+		if _, ok := currentGames[id]; !ok {
+			// Game ended
+			duration := s.ongoingGames.Timestamp.Sub(tg.StartTime)
+			minutes := int(duration.Minutes())
+			if minutes >= 1 {
+				if err := s.playtimeStats.AddPlaytime(tg.Game, minutes); err != nil {
+					if uw, ok := err.(interface{ Unwrap() []error }); ok {
+						for _, err := range uw.Unwrap() {
+							errMap[err.Error()] = struct{}{}
+						}
+					}
+				}
+			}
+			delete(s.ongoingGames.Games, id)
+			finishedCount++
+		}
+	}
+
+	// Update ongoing games
+	s.ongoingGames.Timestamp = now
+	for _, game := range apiResp.OngoingGames {
+		if _, exists := s.ongoingGames.Games[game.ID]; !exists {
+			s.ongoingGames.Games[game.ID] = &TrackedGame{
+				Game:      game,
+				StartTime: now,
+			}
+		}
+	}
+
 	for err := range errMap {
 		// Log parsing errors as github warnings
 		log.Printf("::warning::%v", err)
 	}
 
-	log.Printf("Scrape complete: %d total games, %d new games", len(apiResp.OngoingGames), newGames)
+	log.Printf("Scrape complete: %d total games, %d new games, %d finished games", len(apiResp.OngoingGames), newGames, finishedCount)
 
-	// Save state
-	if err := s.bloomFilter.Save(); err != nil {
-		log.Printf("Warning: failed to save bloom filter: %v", err)
-	}
+	return nil
+}
 
+func (s *Scraper) Save() {
 	if err := s.stats.Save(s.config.StatsFilePath); err != nil {
 		log.Printf("Warning: failed to save stats: %v", err)
 	}
 
-	return nil
+	if err := s.playtimeStats.Save(s.config.PlaytimeStatsFilePath); err != nil {
+		log.Printf("Warning: failed to save playtime stats: %v", err)
+	}
+
+	if err := s.SaveOngoingGames(); err != nil {
+		log.Printf("Warning: failed to save ongoing games: %v", err)
+	}
 }
 
 func (s *Scraper) exportSummary(data interface{}, filename string) error {
@@ -271,9 +392,46 @@ func (s *Scraper) exportSummary(data interface{}, filename string) error {
 	return nil
 }
 
+func (s *Scraper) LoadOngoingGames() error {
+	file, err := os.Open(s.config.OngoingGamesFilePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			s.ongoingGames = &OngoingGames{
+				Games: make(map[string]*TrackedGame),
+			}
+			return nil
+		}
+		return err
+	}
+	defer file.Close()
+
+	s.ongoingGames = &OngoingGames{
+		Games: make(map[string]*TrackedGame),
+	}
+	return json.NewDecoder(file).Decode(&s.ongoingGames)
+}
+
+func (s *Scraper) SaveOngoingGames() error {
+	file, err := os.Create(s.config.OngoingGamesFilePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(s.ongoingGames)
+}
+
 func NewPlayRateStats() *PlayRateStats {
 	return &PlayRateStats{
 		Stats: make(map[LeaderBaseCombination]*CombinationStats),
+	}
+}
+
+func NewPlaytimeStats() *PlaytimeStats {
+	return &PlaytimeStats{
+		Stats: make(map[LeaderBaseCombination]*CombinationPlaytimeStats),
 	}
 }
 
@@ -316,7 +474,58 @@ func (p *PlayRateStats) AddGame(game Game) error {
 	return nil
 }
 
+func (p *PlaytimeStats) AddPlaytime(game Game, minutes int) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	now := getNormalizedTime()
+	dayKey := now.Format("2006-01-02")
+
+	// Track both player combinations, extracting IDs from nested objects
+	p1Leader, err1 := game.Player1Leader.Info()
+	p2Leader, err2 := game.Player2Leader.Info()
+	p1Base, err3 := game.Player1Base.Info()
+	p2Base, err4 := game.Player2Base.Info()
+	if errs := errors.Join(err1, err2, err3, err4); errs != nil {
+		return errs
+	}
+
+	for _, combo := range []struct {
+		LeaderInfo
+		BaseInfo
+	}{
+		{p1Leader, p1Base},
+		{p2Leader, p2Base},
+	} {
+		comboKey := LeaderBaseCombination{Leader: combo.LeaderInfo.ID, Base: combo.BaseInfo.DataKey}
+		stats, exists := p.Stats[comboKey]
+
+		if !exists {
+			stats = &CombinationPlaytimeStats{
+				DailyPlaytime: make(map[string]int),
+			}
+			p.Stats[comboKey] = stats
+		}
+
+		stats.DailyPlaytime[dayKey] += minutes
+	}
+
+	return nil
+}
+
 func (p *PlayRateStats) Save(path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(p)
+}
+
+func (p *PlaytimeStats) Save(path string) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return err
@@ -343,6 +552,21 @@ func LoadStats(path string) (*PlayRateStats, error) {
 	return &stats, nil
 }
 
+func LoadPlaytimeStats(path string) (*PlaytimeStats, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var stats PlaytimeStats
+	if err := json.NewDecoder(file).Decode(&stats); err != nil {
+		return nil, err
+	}
+
+	return &stats, nil
+}
+
 func main() {
 	log.Println("Starting Game Scraper...")
 
@@ -362,6 +586,8 @@ func main() {
 			log.Fatalf("Scrape failed: %v", err)
 		}
 		log.Println("Scrape completed successfully")
+		scraper.Save()
+		log.Println("Scrape saved successfully")
 	default:
 		log.Fatalf("Unknown mode: %s. Use 'scrape'", config.Mode)
 	}
