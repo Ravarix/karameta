@@ -246,7 +246,7 @@ func (s *Scraper) Scrape(ctx context.Context) error {
 				continue // seen game before
 			}
 		}
-		errs := s.stats.AddGame(game)
+		errs := s.AddGame(game)
 		if errs != nil {
 			if uw, ok := errs.(interface{ Unwrap() []error }); ok {
 				for _, err := range uw.Unwrap() {
@@ -265,7 +265,7 @@ func (s *Scraper) Scrape(ctx context.Context) error {
 			// Game ended
 			duration := s.ongoingGames.Timestamp.Sub(tg.StartTime)
 			if duration >= time.Minute {
-				if err := s.playtimeStats.AddPlaytime(tg.Game, int(duration.Minutes())); err != nil {
+				if err := s.AddPlaytime(tg.Game, int(duration.Minutes())); err != nil {
 					if uw, ok := err.(interface{ Unwrap() []error }); ok {
 						for _, err := range uw.Unwrap() {
 							errMap[err.Error()] = struct{}{}
@@ -313,29 +313,6 @@ func (s *Scraper) Save() {
 	}
 }
 
-func (s *Scraper) exportSummary(data interface{}, filename string) error {
-	if err := os.MkdirAll(s.config.ExportDir, 0755); err != nil {
-		return fmt.Errorf("failed to create export directory: %w", err)
-	}
-
-	path := fmt.Sprintf("%s/%s", s.config.ExportDir, filename)
-	file, err := os.Create(path)
-	if err != nil {
-		return fmt.Errorf("failed to create export file: %w", err)
-	}
-	defer file.Close()
-
-	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "  ")
-	if err := encoder.Encode(data); err != nil {
-		return fmt.Errorf("failed to encode summary: %w", err)
-	}
-
-	log.Printf("Exported summary to %s", path)
-
-	return nil
-}
-
 func (s *Scraper) LoadOngoingGames() error {
 	file, err := os.Open(s.config.OngoingGamesFilePath)
 	if err != nil {
@@ -373,46 +350,15 @@ func NewGameStats() *GameStats {
 	}
 }
 
-func (p *GameStats) AddGame(game Game) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	now := getNormalizedTime()
-	dayKey := now.Format("2006-01-02")
-
-	// Track both player combinations, extracting IDs from nested objects
-	p1Leader, err1 := game.Player1Leader.Info()
-	p2Leader, err2 := game.Player2Leader.Info()
-	p1Base, err3 := game.Player1Base.Info()
-	p2Base, err4 := game.Player2Base.Info()
-	if errs := errors.Join(err1, err2, err3, err4); errs != nil {
-		return errs
-	}
-
-	for _, combo := range []struct {
-		LeaderInfo
-		BaseInfo
-	}{
-		{p1Leader, p1Base},
-		{p2Leader, p2Base},
-	} {
-		comboKey := LeaderBaseCombination{Leader: combo.LeaderInfo.ID, Base: combo.BaseInfo.DataKey}
-		stats, exists := p.Stats[comboKey]
-
-		if !exists {
-			stats = &CombinationStats{
-				DailyCounts: make(map[string]int),
-			}
-			p.Stats[comboKey] = stats
-		}
-
-		stats.DailyCounts[dayKey]++
-	}
-
-	return nil
+func (s *Scraper) AddGame(game Game) error {
+	return s.stats.accumulate(game, 1)
 }
 
-func (p *GameStats) AddPlaytime(game Game, minutes int) error {
+func (s *Scraper) AddPlaytime(game Game, minutes int) error {
+	return s.playtimeStats.accumulate(game, minutes)
+}
+
+func (p *GameStats) accumulate(game Game, count int) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -445,7 +391,7 @@ func (p *GameStats) AddPlaytime(game Game, minutes int) error {
 			p.Stats[comboKey] = stats
 		}
 
-		stats.DailyCounts[dayKey] += minutes
+		stats.DailyCounts[dayKey] += count
 	}
 
 	return nil
