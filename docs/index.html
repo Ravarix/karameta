@@ -675,6 +675,7 @@
 
             try {
                 await loadStats();
+                initComboSelect()
                 updateView();
             } catch (e) {
                 showError("Failed to switch data source: " + e.message);
