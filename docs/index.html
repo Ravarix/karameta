@@ -223,7 +223,7 @@
         }
 
         .stat-value {
-            font-size: 28px;
+            font-size: 20px;
             font-weight: 700;
             line-height: 1;
             color: #ffffff;
@@ -417,6 +417,21 @@
             background: #2c3349;
             border-color: #d4af37;
         }
+
+        .btn-toggle.active {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: #d4af37;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .toggle-group {
+            display: flex;
+            gap: 8px;
+            background: #0f1419;
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+        }
     </style>
 </head>
 
@@ -429,20 +444,28 @@
 
         <div class="controls">
             <div class="control-group">
-                <label>Date Range:</label>
-                <div class="date-inputs">
-                    <input type="date" id="startDate">
-                    <span>to</span>
-                    <input type="date" id="endDate">
-                </div>
-                <div class="stats-grid" id="statsGrid">
-                    <div class="stat-card">
-                        <div class="stat-label">Games in Range</div>
-                        <div class="stat-value" id="valTotalGames">-</div>
+                <div class="control-group">
+                    <label>Date Range:</label>
+                    <div class="date-inputs">
+                        <input type="date" id="startDate">
+                        <span>to</span>
+                        <input type="date" id="endDate">
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Unique Combos</div>
-                        <div class="stat-value" id="valUniqueCombos">-</div>
+                </div>
+
+                <div style="display: flex; gap: 20px; align-items: flex-end; margin-top: 5px;">
+                    <div class="control-group">
+                        <label>Data Source:</label>
+                        <div class="toggle-group">
+                            <button class="btn-toggle active" id="btnGames"
+                                onclick="setDataSource('games')">Games</button>
+                            <button class="btn-toggle" id="btnPlaytime"
+                                onclick="setDataSource('playtime')">Playtime</button>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="margin: 0; flex: 1;">
+                        <div class="stat-label" id="lblTotalGames" style="margin-bottom: 4px;">Games in Range</div>
+                        <div class="stat-value" id="valTotalGames" style="font-size: 18px;">-</div>
                     </div>
                 </div>
             </div>
@@ -472,6 +495,11 @@
         let baseNameToId = {};
         let trendCalculationMode = 'absolute'; // 'absolute' or 'relative'
         let minGamesThreshold = 30;
+        let currentDataSource = 'games'; // 'games' or 'playtime'
+        let cachedStats = {
+            games: null,
+            playtime: null
+        };
         const ghRoot = 'https://raw.githubusercontent.com/Ravarix/karameta/refs/heads/main/';
 
         const alignments = ["Heroism", "Villainy"];
@@ -617,9 +645,40 @@
         }
 
         async function loadStats() {
-            const resp = await fetch(ghRoot + 'data/stats.json?t=' + Date.now());
-            if (!resp.ok) throw new Error("Failed to load stats.json");
+            const fileName = currentDataSource === 'games' ? 'stats.json' : 'playtime_stats.json';
+
+            if (cachedStats[currentDataSource]) {
+                statsData = cachedStats[currentDataSource];
+                return;
+            }
+
+            const resp = await fetch(ghRoot + 'data/' + fileName + '?t=' + Date.now());
+            if (!resp.ok) throw new Error(`Failed to load ${fileName}`);
             statsData = await resp.json();
+            cachedStats[currentDataSource] = statsData;
+        }
+
+        async function setDataSource(source) {
+            if (currentDataSource === source) return;
+            currentDataSource = source;
+
+            // Update UI
+            document.getElementById('btnGames').classList.toggle('active', source === 'games');
+            document.getElementById('btnPlaytime').classList.toggle('active', source === 'playtime');
+
+            // Update labels
+            document.getElementById('lblTotalGames').textContent = source === 'games' ? 'Games in Range' : 'Playtime in Range';
+
+            // Reload and update
+            const content = document.getElementById('content');
+            content.innerHTML = '<div class="loading">Loading ' + source + ' statistics...</div>';
+
+            try {
+                await loadStats();
+                updateView();
+            } catch (e) {
+                showError("Failed to switch data source: " + e.message);
+            }
         }
 
         function getDateRange() {
@@ -815,6 +874,24 @@
             return total;
         }
 
+        function minutesToDays(mins) {
+            let cd = 24 * 60,
+                ch = 60,
+                day = Math.floor(mins / cd),
+                hour = Math.floor((mins - day * cd) / ch),
+                minute = Math.round(mins - day * cd - hour * ch),
+                pad = n => { return n < 10 ? '0' + n : n; };
+            if (minute === 60) {
+                hour++;
+                minute = 0;
+            }
+            if (hour === 24) {
+                day++;
+                hour = 0;
+            }
+            return [(day > 0 ? `${day}d` : ""), (hour > 0 ? `${pad(hour)}h ` : ''), `${pad(minute)}m`].join(" ");
+        }
+
         function initComboSelect() {
             // Find the latest date with data to use for "current day" defaults
             let maxDate = '0000-00-00';
@@ -931,8 +1008,7 @@
             }
 
             // Update Stats
-            document.getElementById('valTotalGames').textContent = aggregated.totalGameCount.toLocaleString();
-            document.getElementById('valUniqueCombos').textContent = Object.keys(aggregated.combinations).length.toLocaleString();
+            document.getElementById('valTotalGames').textContent = currentDataSource === 'games' ? aggregated.totalGameCount.toLocaleString() : minutesToDays(aggregated.totalGameCount);
 
             // Split into Hot & Cold
             const hotItems = aggregated.hotColdCombinations.filter(x => x.delta > 0);
@@ -1018,8 +1094,9 @@
                                     const date = context.chart.data.labels[context.dataIndex];
                                     const percentage = context.parsed.y;
                                     const stats = statsData.stats[reverseComboNameLookup(comboName)];
-                                    const count = stats?.dailyCounts?.[date] || 0;
-                                    return `${comboName}: ${percentage.toFixed(2)}% (${count.toLocaleString()})`;
+                                    const value = stats?.dailyCounts?.[date] || 0;
+                                    const formattedValue = currentDataSource === 'games' ? value.toLocaleString() : minutesToDays(value);
+                                    return `${comboName}: ${percentage.toFixed(2)}% (${formattedValue})`;
                                 }
                             }
                         }
@@ -1109,7 +1186,8 @@
 
                                     const value = context.parsed || 0;
                                     const percentage = ((value / datasetTotal) * 100).toFixed(1);
-                                    return `${label}: ${percentage}% (${value.toLocaleString()})`;
+                                    const formattedValue = currentDataSource === 'games' ? value.toLocaleString() : minutesToDays(value);
+                                    return `${label}: ${percentage}% (${formattedValue})`;
                                 }
                             }
                         }
@@ -1296,7 +1374,8 @@
 
                                     const value = context.parsed || 0;
                                     const percentage = ((value / datasetTotal) * 100).toFixed(1);
-                                    return `${label}: ${percentage}% (${value.toLocaleString()})`;
+                                    const formattedValue = currentDataSource === 'games' ? value.toLocaleString() : minutesToDays(value);
+                                    return `${label}: ${percentage}% (${formattedValue})`;
                                 }
                             }
                         }
