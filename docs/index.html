@@ -1099,6 +1099,9 @@
                                     const formattedValue = currentDataSource === 'games' ? value.toLocaleString() : minutesToDays(value);
                                     return `${comboName}: ${percentage.toFixed(2)}% (${formattedValue})`;
                                 }
+                            },
+                            itemSort: function (a, b) {
+                                return b.raw - a.raw;
                             }
                         }
                     },
