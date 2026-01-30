@@ -971,40 +971,50 @@
                             <canvas id="trendChart"></canvas>
                         </div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <h2 class="section-title" style="margin-bottom: 0; border: none;">Hot & Cold</h2>
-                        <div style="display: flex; gap: 12px; align-items: center;">
-                            <div style="display: flex; align-items: center; gap: 8px; color: #a8b2d1; font-size: 14px;">
-                                <label for="minGamesInput">Min Games:</label>
-                                <input type="number" id="minGamesInput" value="30" min="0" 
-                                    style="width: 70px; background: #252a3d; border: 1px solid rgba(212, 175, 55, 0.3); color: #d4af37; padding: 6px 10px; border-radius: 6px; font-weight: 600;"
-                                    onchange="updateMinGames(this.value)">
-                            </div>
-                            <button class="btn-toggle" onclick="toggleTrendMode()" id="btnTrendMode">
-                                Mode: Absolute %
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="trend-grid">
-                        <div class="trend-column">
-                            <h3 class="trend-title">🔥 Heating Up</h3>
-                            <div class="combo-list" id="hotList"></div>
-                        </div>
-                        <div class="trend-column">
-                            <h3 class="trend-title">❄️ Cooling Down</h3>
-                            <div class="combo-list" id="coldList"></div>
-                        </div>
-                    </div>
 
-                    <div class="chart-container">
-                        <h2 class="section-title">Distribution (Selection)</h2>
-                        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                            <div class="chart-wrapper" style="flex: 1; min-width: 300px;">
-                                <canvas id="pieChart"></canvas>
+                    <div style="display: flex; gap: 24px; margin-bottom: 40px; flex-wrap: wrap;">
+                        <!-- Left Side: Distribution -->
+                        <div style="flex: 1; min-width: 350px;">
+                            <div class="chart-container">
+                                <div style="display: flex; flex-direction: column; gap: 20px;">
+                                    <h2 class="section-title">Distribution</h2>
+                                    <div class="chart-wrapper" style="height: 350px;">
+                                        <canvas id="pieChart"></canvas>
+                                    </div>
+                                    <h2 class="section-title">Base & Aspects</h2>
+                                    <div class="chart-wrapper" style="height: 350px;">
+                                        <canvas id="basePieChart"></canvas>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="chart-wrapper" style="flex: 1; min-width: 300px;">
-                                <canvas id="basePieChart"></canvas>
+                        </div>
+
+                        <!-- Right Side: Hot & Cold -->
+                        <div style="flex: 2; min-width: 400px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                                <h2 class="section-title" style="margin-bottom: 0; border: none;">Hot & Cold</h2>
+                                <div style="display: flex; gap: 12px; align-items: center;">
+                                    <div style="display: flex; align-items: center; gap: 8px; color: #a8b2d1; font-size: 14px;">
+                                        <label for="minGamesInput">Min Games:</label>
+                                        <input type="number" id="minGamesInput" value="${minGamesThreshold}" min="0" 
+                                            style="width: 70px; background: #252a3d; border: 1px solid rgba(212, 175, 55, 0.3); color: #d4af37; padding: 6px 10px; border-radius: 6px; font-weight: 600;"
+                                            onchange="updateMinGames(this.value)">
+                                    </div>
+                                    <button class="btn-toggle" onclick="toggleTrendMode()" id="btnTrendMode">
+                                        Mode: ${trendCalculationMode === 'absolute' ? 'Absolute %' : 'Relative %'}
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="trend-grid">
+                                <div class="trend-column">
+                                    <h3 class="trend-title">🔥 Heating Up</h3>
+                                    <div class="combo-list" id="hotList"></div>
+                                </div>
+                                <div class="trend-column">
+                                    <h3 class="trend-title">❄️ Cooling Down</h3>
+                                    <div class="combo-list" id="coldList"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
