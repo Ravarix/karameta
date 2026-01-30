@@ -500,6 +500,10 @@
             games: null,
             playtime: null
         };
+        const _dailyTotalCache = {
+            games: {},
+            playtime: {}
+        };
         const ghRoot = 'https://raw.githubusercontent.com/Ravarix/karameta/refs/heads/main/';
 
         const alignments = ["Heroism", "Villainy"];
@@ -513,6 +517,18 @@
             'Villainy': '#000000',   // Dark/Black
             'Star': '#808080'        // Neutral
         };
+
+        // Helper to cache daily totals since we need them often
+        function getTotalGamesForDate(date) {
+            if (_dailyTotalCache[currentDataSource][date] !== undefined) return _dailyTotalCache[currentDataSource][date];
+
+            let total = 0;
+            for (const stats of Object.values(statsData.stats)) {
+                total += (stats.dailyCounts[date] || 0);
+            }
+            _dailyTotalCache[currentDataSource][date] = total;
+            return total;
+        }
 
         function hexToRgb(hex) {
             const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -860,19 +876,6 @@
             });
 
             return { labels: sortedDates, datasets };
-        }
-
-        // Helper to cache daily totals since we need them often
-        const _dailyTotalCache = {};
-        function getTotalGamesForDate(date) {
-            if (_dailyTotalCache[date] !== undefined) return _dailyTotalCache[date];
-
-            let total = 0;
-            for (const stats of Object.values(statsData.stats)) {
-                total += (stats.dailyCounts[date] || 0);
-            }
-            _dailyTotalCache[date] = total;
-            return total;
         }
 
         function minutesToDays(mins) {
