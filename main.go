@@ -14,8 +14,6 @@ import (
 
 const (
 	DefaultAPIURL               = "https://api.karabast.net/api/ongoing-games"
-	DefaultStatsFilePath        = "./data/stats.json"         // Legacy file for migration
-	DefaultPlaytimeStatsFilePath = "./data/playtime_stats.json" // Legacy file for migration
 	DefaultOngoingGamesFilePath = "./data/ongoing_games.json"
 	DefaultExportDir            = "./data"
 )
@@ -158,15 +156,13 @@ func getPlaytimeStatsFilePath(exportDir, format string) string {
 }
 
 type Config struct {
-	APIURL                string
-	BloomFilePath         string
-	StatsFilePath         string
-	PlaytimeStatsFilePath string
-	OngoingGamesFilePath  string
-	ExportDir             string
-	HTTPTimeout           time.Duration
-	Mode                  string
-	DedupGames            bool
+	APIURL               string
+	BloomFilePath        string
+	OngoingGamesFilePath string
+	ExportDir            string
+	HTTPTimeout          time.Duration
+	Mode                 string
+	DedupGames           bool
 }
 
 type Scraper struct {
@@ -179,14 +175,12 @@ type Scraper struct {
 
 func NewConfig() Config {
 	return Config{
-		APIURL:                getEnv("API_URL", DefaultAPIURL),
-		StatsFilePath:         getEnv("STATS_FILE_PATH", DefaultStatsFilePath),
-		PlaytimeStatsFilePath: getEnv("PLAYTIME_STATS_FILE_PATH", DefaultPlaytimeStatsFilePath),
-		OngoingGamesFilePath:  getEnv("ONGOING_GAMES_FILE_PATH", DefaultOngoingGamesFilePath),
-		ExportDir:             getEnv("EXPORT_DIR", DefaultExportDir),
-		HTTPTimeout:           30 * time.Second,
-		Mode:                  getEnv("MODE", "scrape"),
-		DedupGames:            getEnv("DEDUP_GAMES", "true") == "true",
+		APIURL:               getEnv("API_URL", DefaultAPIURL),
+		OngoingGamesFilePath: getEnv("ONGOING_GAMES_FILE_PATH", DefaultOngoingGamesFilePath),
+		ExportDir:            getEnv("EXPORT_DIR", DefaultExportDir),
+		HTTPTimeout:          30 * time.Second,
+		Mode:                 getEnv("MODE", "scrape"),
+		DedupGames:           getEnv("DEDUP_GAMES", "true") == "true",
 	}
 }
 
@@ -204,109 +198,25 @@ func NewScraper(config Config) (*Scraper, error) {
 	statsMap := make(map[string]*GameStats)
 	playtimeMap := make(map[string]*GameStats)
 	
-	// Check if legacy files exist for migration
-	legacyStatsExists := false
-	legacyPlaytimeExists := false
-	
-	if _, err := os.Stat(config.StatsFilePath); err == nil {
-		legacyStatsExists = true
-	}
-	if _, err := os.Stat(config.PlaytimeStatsFilePath); err == nil {
-		legacyPlaytimeExists = true
-	}
-	
-	// Migrate legacy stats if they exist
-	if legacyStatsExists {
-		log.Println("Migrating legacy stats.json to format-specific files...")
-		legacyStats, err := LoadStats(config.StatsFilePath)
-		if err == nil {
-			// Separate LAW and non-LAW data
-			premierStats := NewGameStats()
-			nextSetPreviewStats := NewGameStats()
-			
-			legacyStats.mu.RLock()
-			for combo, stats := range legacyStats.Stats {
-				if isLAWCard(combo.Leader) || isLAWCard(combo.Base) {
-					// LAW cards go to nextSetPreview
-					nextSetPreviewStats.Stats[combo] = stats
-				} else {
-					// Non-LAW cards go to premier
-					premierStats.Stats[combo] = stats
-				}
-			}
-			legacyStats.mu.RUnlock()
-			
-			statsMap["premier"] = premierStats
-			statsMap["nextSetPreview"] = nextSetPreviewStats
-			statsMap["open"] = NewGameStats()
-			
-			// Save to new format-specific files
-			premierStats.Save(getStatsFilePath(config.ExportDir, "premier"))
-			nextSetPreviewStats.Save(getStatsFilePath(config.ExportDir, "nextSetPreview"))
-			statsMap["open"].Save(getStatsFilePath(config.ExportDir, "open"))
-			
-			// Remove legacy file
-			os.Remove(config.StatsFilePath)
-			log.Println("Legacy stats.json migrated and removed")
+	// Load format-specific files or create new ones
+	for _, format := range formats {
+		// Load stats
+		statsPath := getStatsFilePath(config.ExportDir, format)
+		stats, err := LoadStats(statsPath)
+		if err != nil {
+			log.Printf("No existing stats for format %s, starting fresh", format)
+			stats = NewGameStats()
 		}
-	} else {
-		// Load existing format-specific files or create new ones
-		for _, format := range formats {
-			filePath := getStatsFilePath(config.ExportDir, format)
-			stats, err := LoadStats(filePath)
-			if err != nil {
-				log.Printf("No existing stats for format %s, starting fresh", format)
-				stats = NewGameStats()
-			}
-			statsMap[format] = stats
+		statsMap[format] = stats
+		
+		// Load playtime stats
+		playtimePath := getPlaytimeStatsFilePath(config.ExportDir, format)
+		playtimeStats, err := LoadStats(playtimePath)
+		if err != nil {
+			log.Printf("No existing playtime stats for format %s, starting fresh", format)
+			playtimeStats = NewGameStats()
 		}
-	}
-	
-	// Migrate legacy playtime stats if they exist
-	if legacyPlaytimeExists {
-		log.Println("Migrating legacy playtime_stats.json to format-specific files...")
-		legacyPlaytime, err := LoadStats(config.PlaytimeStatsFilePath)
-		if err == nil {
-			// Separate LAW and non-LAW data
-			premierPlaytime := NewGameStats()
-			nextSetPreviewPlaytime := NewGameStats()
-			
-			legacyPlaytime.mu.RLock()
-			for combo, stats := range legacyPlaytime.Stats {
-				if isLAWCard(combo.Leader) || isLAWCard(combo.Base) {
-					// LAW cards go to nextSetPreview
-					nextSetPreviewPlaytime.Stats[combo] = stats
-				} else {
-					// Non-LAW cards go to premier
-					premierPlaytime.Stats[combo] = stats
-				}
-			}
-			legacyPlaytime.mu.RUnlock()
-			
-			playtimeMap["premier"] = premierPlaytime
-			playtimeMap["nextSetPreview"] = nextSetPreviewPlaytime
-			playtimeMap["open"] = NewGameStats()
-			
-			// Save to new format-specific files
-			premierPlaytime.Save(getPlaytimeStatsFilePath(config.ExportDir, "premier"))
-			nextSetPreviewPlaytime.Save(getPlaytimeStatsFilePath(config.ExportDir, "nextSetPreview"))
-			playtimeMap["open"].Save(getPlaytimeStatsFilePath(config.ExportDir, "open"))
-			
-			// Remove legacy file
-			os.Remove(config.PlaytimeStatsFilePath)
-			log.Println("Legacy playtime_stats.json migrated and removed")
-		}
-	} else {
-		// Load existing format-specific files or create new ones
-		for _, format := range formats {
-			filePath := getPlaytimeStatsFilePath(config.ExportDir, format)
-			stats, err := LoadStats(filePath)
-			if err != nil {
-				log.Printf("No existing playtime stats for format %s, starting fresh", format)
-				stats = NewGameStats()
-			}
-			playtimeMap[format] = stats
-		}
+		playtimeMap[format] = playtimeStats
 	}
 	
 	scraper := &Scraper{

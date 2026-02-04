@@ -496,13 +496,22 @@
         let trendCalculationMode = 'absolute'; // 'absolute' or 'relative'
         let minGamesThreshold = 30;
         let currentDataSource = 'games'; // 'games' or 'playtime'
+        let currentFormat = 'premier'; // 'premier', 'open' or 'nextSetPreview'
         let cachedStats = {
-            games: null,
-            playtime: null
+            games_premier: null,
+            playtime_premier: null,
+            games_open: null,
+            playtime_open: null,
+            games_nextSetPreview: null,
+            playtime_nextSetPreview: null
         };
         const _dailyTotalCache = {
-            games: {},
-            playtime: {}
+            games_premier: {},
+            playtime_premier: {},
+            games_open: {},
+            playtime_open: {},
+            games_nextSetPreview: {},
+            playtime_nextSetPreview: {},
         };
         const ghRoot = 'https://raw.githubusercontent.com/Ravarix/karameta/refs/heads/main/';
 
@@ -520,13 +529,15 @@
 
         // Helper to cache daily totals since we need them often
         function getTotalGamesForDate(date) {
-            if (_dailyTotalCache[currentDataSource][date] !== undefined) return _dailyTotalCache[currentDataSource][date];
+            if (_dailyTotalCache[`${currentDataSource}_${currentFormat}`][date] !== undefined) {
+                return _dailyTotalCache[`${currentDataSource}_${currentFormat}`][date];
+            }
 
             let total = 0;
             for (const stats of Object.values(statsData.stats)) {
                 total += (stats.dailyCounts[date] || 0);
             }
-            _dailyTotalCache[currentDataSource][date] = total;
+            _dailyTotalCache[`${currentDataSource}_${currentFormat}`][date] = total;
             return total;
         }
 
@@ -661,17 +672,18 @@
         }
 
         async function loadStats() {
-            const fileName = currentDataSource === 'games' ? 'stats_premier.json' : 'playtime_stats_premier.json';
+            const fileName = currentDataSource === 'games' ? `stats_${currentFormat}.json` : `playtime_stats_${currentFormat}.json`;
+            const statsKey = `${currentDataSource}_${currentFormat}`;
 
-            if (cachedStats[currentDataSource]) {
-                statsData = cachedStats[currentDataSource];
+            if (cachedStats[statsKey]) {
+                statsData = cachedStats[statsKey];
                 return;
             }
 
             const resp = await fetch(ghRoot + 'data/' + fileName + '?t=' + Date.now());
             if (!resp.ok) throw new Error(`Failed to load ${fileName}`);
             statsData = await resp.json();
-            cachedStats[currentDataSource] = statsData;
+            cachedStats[statsKey] = statsData;
         }
 
         async function setDataSource(source) {
