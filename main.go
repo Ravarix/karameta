@@ -200,11 +200,10 @@ func NewScraper(config Config) (*Scraper, error) {
 	
 	// Load format-specific files or create new ones
 	for _, format := range formats {
-		// Load stats
 		statsPath := getStatsFilePath(config.ExportDir, format)
 		stats, err := LoadStats(statsPath)
 		if err != nil {
-			log.Printf("No existing stats for format %s, starting fresh", format)
+			log.Fatalf("No existing stats for format %s", format)
 			stats = NewGameStats()
 		}
 		statsMap[format] = stats
@@ -213,7 +212,7 @@ func NewScraper(config Config) (*Scraper, error) {
 		playtimePath := getPlaytimeStatsFilePath(config.ExportDir, format)
 		playtimeStats, err := LoadStats(playtimePath)
 		if err != nil {
-			log.Printf("No existing playtime stats for format %s, starting fresh", format)
+			log.Fatalf("No existing playtime stats for format %s", format)
 			playtimeStats = NewGameStats()
 		}
 		playtimeMap[format] = playtimeStats
@@ -229,7 +228,7 @@ func NewScraper(config Config) (*Scraper, error) {
 	}
 	
 	if err := scraper.LoadOngoingGames(); err != nil {
-		log.Printf("Warning: failed to load ongoing games, starting fresh: %v", err)
+		log.Fatalf("Failed to load ongoing games: %v", err)
 		scraper.ongoingGames = &OngoingGames{
 			Games: make(map[string]*TrackedGame),
 		}
