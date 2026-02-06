@@ -34,10 +34,50 @@
         .header {
             background: linear-gradient(135deg, #0f1419 0%, #1a1f3a 100%);
             color: #d4af37;
-            padding: 40px;
+            padding: 40px 40px 0 40px;
             text-align: center;
             border-bottom: 2px solid rgba(212, 175, 55, 0.3);
             position: relative;
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 4px;
+            position: relative;
+            bottom: -2px;
+        }
+
+        .tab-button {
+            background: rgba(15, 20, 25, 0.6);
+            border: none;
+            color: #7c8db0;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s;
+            position: relative;
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+            border-left: 1px solid rgba(212, 175, 55, 0.2);
+            border-right: 1px solid rgba(212, 175, 55, 0.2);
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .tab-button:hover {
+            color: #d4af37;
+            background: rgba(15, 20, 25, 0.8);
+            border-top-color: rgba(212, 175, 55, 0.4);
+        }
+
+        .tab-button.active {
+            background: #0f1419;
+            color: #d4af37;
+            border-top-color: rgba(212, 175, 55, 0.3);
+            border-left-color: rgba(212, 175, 55, 0.3);
+            border-right-color: rgba(212, 175, 55, 0.3);
+            border-bottom: 2px solid #0f1419;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);
         }
 
         .github-link {
@@ -230,34 +270,6 @@
             overflow: hidden;
             flex: 1;
             min-width: 0;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #4a9eff, #d4af37, #ff4757);
-        }
-
-        .stat-card:nth-child(1)::before {
-            background: #4a9eff;
-        }
-
-        .stat-card:nth-child(2)::before {
-            background: #ff4757;
-        }
-
-        .stat-card:nth-child(3)::before {
-            background: #2ed573;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
-            border-color: #d4af37;
         }
 
         .stat-label {
@@ -495,7 +507,12 @@
                 </svg>
             </a>
             <h1>Karabast Statistics Dashboard</h1>
-            <p>Real-time analysis of ongoing games</p>
+            <p>Star Wars: Unlimited Meta Analysis</p>
+            <div class="tab-nav">
+                <button class="tab-button active" id="btnPremier" onclick="setFormat('premier')">Premier</button>
+                <button class="tab-button" id="btnNextSetPreview" onclick="setFormat('nextSetPreview')">Next Set
+                    Preview</button>
+            </div>
         </div>
 
         <div class="controls">
@@ -766,6 +783,28 @@
                 updateView();
             } catch (e) {
                 showError("Failed to switch data source: " + e.message);
+            }
+        }
+
+        async function setFormat(format) {
+            if (currentFormat === format) return;
+            currentFormat = format;
+
+            // Update UI
+            document.getElementById('btnPremier').classList.toggle('active', format === 'premier');
+            document.getElementById('btnNextSetPreview').classList.toggle('active', format === 'nextSetPreview');
+
+            // Reload and update
+            const content = document.getElementById('content');
+            const formatLabel = format === 'premier' ? 'Premier' : 'Next Set Preview';
+            content.innerHTML = '<div class="loading">Loading ' + formatLabel + ' statistics...</div>';
+
+            try {
+                await loadStats();
+                initComboSelect()
+                updateView();
+            } catch (e) {
+                showError("Failed to switch format: " + e.message);
             }
         }
 
