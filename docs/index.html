@@ -133,11 +133,34 @@
         }
 
         /* Multiselect Styling */
+        .combo-search {
+            flex: 1;
+            padding: 10px 16px;
+            font-size: 14px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 8px 8px 0 0;
+            border-bottom: none;
+            background: #1a1f2e;
+            color: #d4af37;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .combo-search::placeholder {
+            color: rgba(168, 178, 209, 0.5);
+        }
+
+        .combo-search:focus {
+            outline: none;
+            border-color: #d4af37;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+
         .multiselect-container {
             width: 100%;
             height: 170px;
             border: 2px solid rgba(212, 175, 55, 0.3);
-            border-radius: 8px;
+            border-radius: 0 0 8px 8px;
             background: #1a1f2e;
             overflow-y: auto;
             padding: 8px;
@@ -178,6 +201,10 @@
             border-color: #d4af37;
             color: #d4af37;
             font-weight: 600;
+        }
+
+        .multiselect-option.hidden {
+            display: none;
         }
 
         .content {
@@ -500,7 +527,10 @@
             </div>
 
             <div class="control-group" style="flex: 1;">
-                <label>Combinations to Trend:</label>
+                <div style="display: flex; gap: 12px; align-items: center; margin-bottom: -12px;">
+                    <label style="margin: 0; white-space: nowrap;">Combinations to Trend:</label>
+                    <input type="text" class="combo-search" id="comboSearch" placeholder="Search combinations...">
+                </div>
                 <div class="multiselect-container" id="comboSelect">
                     <div class="multiselect-placeholder">Loading...</div>
                 </div>
@@ -867,7 +897,8 @@
                 if (cb.value === comboName) {
                     if (!cb.checked) {
                         cb.checked = true;
-                        // Trigger update
+                        // Trigger reordering and update
+                        reorderComboOptions();
                         updateView();
 
                         // Scroll to chart
@@ -967,33 +998,86 @@
             const container = document.getElementById('comboSelect');
             container.innerHTML = '';
 
-
             // Improved MultiSelect UI
             const wrapper = document.createElement('div');
             wrapper.className = 'multiselect-wrapper';
 
-            // Initialize with top 10 selected
+            // Initialize with top 5 selected
             const defaultSelected = new Set(sortedCombos.slice(0, 5));
+
+            // Create all options (will be sorted later)
+            const allOptions = [];
 
             sortedCombos.forEach(combo => {
                 const label = document.createElement('label');
                 label.className = 'multiselect-option';
+                label.dataset.comboName = combo;
+                label.dataset.comboDisplayName = translateComboName(combo).toLowerCase();
 
                 const cb = document.createElement('input');
                 cb.type = 'checkbox';
                 cb.value = combo;
                 cb.checked = defaultSelected.has(combo);
-                cb.addEventListener('change', updateView);
+                cb.addEventListener('change', () => {
+                    reorderComboOptions();
+                    updateView();
+                });
 
                 const text = document.createElement('span');
                 text.textContent = translateComboName(combo);
 
                 label.appendChild(cb);
                 label.appendChild(text);
-                wrapper.appendChild(label);
+                allOptions.push(label);
             });
 
+            // Add all options to wrapper
+            allOptions.forEach(option => wrapper.appendChild(option));
             container.appendChild(wrapper);
+
+            // Setup search functionality
+            const searchInput = document.getElementById('comboSearch');
+            searchInput.addEventListener('input', (e) => {
+                filterComboOptions(e.target.value);
+            });
+
+            // Initial ordering (selected first)
+            reorderComboOptions();
+        }
+
+        function reorderComboOptions() {
+            const wrapper = document.querySelector('.multiselect-wrapper');
+            if (!wrapper) return;
+
+            const options = Array.from(wrapper.querySelectorAll('.multiselect-option'));
+
+            // Separate selected and unselected
+            const selected = options.filter(opt => opt.querySelector('input').checked);
+            const unselected = options.filter(opt => !opt.querySelector('input').checked);
+
+            // Clear wrapper
+            wrapper.innerHTML = '';
+
+            // Add selected first, then unselected
+            selected.forEach(opt => wrapper.appendChild(opt));
+            unselected.forEach(opt => wrapper.appendChild(opt));
+        }
+
+        function filterComboOptions(searchText) {
+            const wrapper = document.querySelector('.multiselect-wrapper');
+            if (!wrapper) return;
+
+            const options = wrapper.querySelectorAll('.multiselect-option');
+            const search = searchText.toLowerCase().trim();
+
+            options.forEach(option => {
+                const displayName = option.dataset.comboDisplayName;
+                if (search === '' || displayName.includes(search)) {
+                    option.classList.remove('hidden');
+                } else {
+                    option.classList.add('hidden');
+                }
+            });
         }
 
         let pieChartInstance = null;
