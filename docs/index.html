@@ -499,11 +499,12 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-J3N4JRTG44"></script>
 <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
 
     gtag('config', 'G-J3N4JRTG44');
 </script>
+
 <body>
     <div class="container">
         <div class="header">
@@ -683,9 +684,23 @@
             return `rgb(${r}, ${g}, ${b})`;
         }
 
+        // Parse query parameters
+        function parseQueryParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // Set winMode from query parameter if valid
+            const winModeParam = urlParams.get('winMode');
+            if (winModeParam === 'bestOfOne' || winModeParam === 'bestOfThree') {
+                currentWinMode = winModeParam;
+            }
+        }
+
         // Initialization
         async function init() {
             try {
+                // Parse query parameters first
+                parseQueryParams();
+
                 // Load parallel data
                 await Promise.all([loadCards(), loadStats()]);
 
