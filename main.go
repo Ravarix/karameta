@@ -27,12 +27,13 @@ type Base struct {
 }
 
 type Game struct {
-	ID            string `json:"id"`
-	Player1Leader Leader `json:"player1Leader"`
-	Player1Base   Base   `json:"player1Base"`
-	Player2Leader Leader `json:"player2Leader"`
-	Player2Base   Base   `json:"player2Base"`
-	Format        string `json:"format"`
+	ID             string `json:"id"`
+	Player1Leader  Leader `json:"player1Leader"`
+	Player1Base    Base   `json:"player1Base"`
+	Player2Leader  Leader `json:"player2Leader"`
+	Player2Base    Base   `json:"player2Base"`
+	Format         string `json:"format"`
+	GamesToWinMode string `json:"gamesToWinMode"`
 }
 
 type APIResponse struct {
@@ -145,14 +146,19 @@ func isLAWCard(id string) bool {
 	return len(id) >= 3 && id[:3] == "LAW"
 }
 
-// getStatsFilePath returns the format-specific stats file path
-func getStatsFilePath(exportDir, format string) string {
-	return fmt.Sprintf("%s/stats_%s.json", exportDir, format)
+// getStatsFilePath returns the format and gamesToWin-specific stats file path
+func getStatsFilePath(exportDir, format, gamesToWin string) string {
+	return fmt.Sprintf("%s/stats_%s_%s.json", exportDir, format, gamesToWin)
 }
 
-// getPlaytimeStatsFilePath returns the format-specific playtime stats file path
-func getPlaytimeStatsFilePath(exportDir, format string) string {
-	return fmt.Sprintf("%s/playtime_stats_%s.json", exportDir, format)
+// getPlaytimeStatsFilePath returns the format and gamesToWin-specific playtime stats file path
+func getPlaytimeStatsFilePath(exportDir, format, gamesToWin string) string {
+	return fmt.Sprintf("%s/playtime_stats_%s_%s.json", exportDir, format, gamesToWin)
+}
+
+// getFacetKey returns the composite key for format and gamesToWin mode
+func getFacetKey(format, gamesToWin string) string {
+	return fmt.Sprintf("%s_%s", format, gamesToWin)
 }
 
 type Config struct {
@@ -168,8 +174,8 @@ type Config struct {
 type Scraper struct {
 	config        Config
 	client        *http.Client
-	stats         map[string]*GameStats // keyed by format
-	playtimeStats map[string]*GameStats // keyed by format
+	stats         map[string]*GameStats // keyed by "format_gamesToWinMode"
+	playtimeStats map[string]*GameStats // keyed by "format_gamesToWinMode"
 	ongoingGames  *OngoingGames
 }
 
@@ -193,31 +199,36 @@ func getEnv(key, defaultValue string) string {
 
 func NewScraper(config Config) (*Scraper, error) {
 	formats := []string{"premier", "open", "nextSetPreview"}
-	
+	gamesToWinModes := []string{"bestOfOne", "bestOfThree"}
+
 	// Initialize stats and playtime maps
 	statsMap := make(map[string]*GameStats)
 	playtimeMap := make(map[string]*GameStats)
-	
-	// Load format-specific files or create new ones
+
+	// Load format and gamesToWin-specific files or create new ones
 	for _, format := range formats {
-		statsPath := getStatsFilePath(config.ExportDir, format)
-		stats, err := LoadStats(statsPath)
-		if err != nil {
-			log.Fatalf("No existing stats for format %s", format)
-			stats = NewGameStats()
+		for _, gamesToWin := range gamesToWinModes {
+			facetKey := getFacetKey(format, gamesToWin)
+			
+			statsPath := getStatsFilePath(config.ExportDir, format, gamesToWin)
+			stats, err := LoadStats(statsPath)
+			if err != nil {
+				log.Printf("No existing stats for %s, creating new", facetKey)
+				stats = NewGameStats()
+			}
+			statsMap[facetKey] = stats
+
+			// Load playtime stats
+			playtimePath := getPlaytimeStatsFilePath(config.ExportDir, format, gamesToWin)
+			playtimeStats, err := LoadStats(playtimePath)
+			if err != nil {
+				log.Printf("No existing playtime stats for %s, creating new", facetKey)
+				playtimeStats = NewGameStats()
+			}
+			playtimeMap[facetKey] = playtimeStats
 		}
-		statsMap[format] = stats
-		
-		// Load playtime stats
-		playtimePath := getPlaytimeStatsFilePath(config.ExportDir, format)
-		playtimeStats, err := LoadStats(playtimePath)
-		if err != nil {
-			log.Fatalf("No existing playtime stats for format %s", format)
-			playtimeStats = NewGameStats()
-		}
-		playtimeMap[format] = playtimeStats
 	}
-	
+
 	scraper := &Scraper{
 		config: config,
 		client: &http.Client{
@@ -226,14 +237,14 @@ func NewScraper(config Config) (*Scraper, error) {
 		stats:         statsMap,
 		playtimeStats: playtimeMap,
 	}
-	
+
 	if err := scraper.LoadOngoingGames(); err != nil {
 		log.Fatalf("Failed to load ongoing games: %v", err)
 		scraper.ongoingGames = &OngoingGames{
 			Games: make(map[string]*TrackedGame),
 		}
 	}
-	
+
 	return scraper, nil
 }
 
@@ -325,21 +336,26 @@ func (s *Scraper) Scrape(ctx context.Context) error {
 
 func (s *Scraper) Save() {
 	formats := []string{"premier", "open", "nextSetPreview"}
-	
+	gamesToWinModes := []string{"bestOfOne", "bestOfThree"}
+
 	for _, format := range formats {
-		// Save stats for this format
-		if stats, ok := s.stats[format]; ok {
-			filePath := getStatsFilePath(s.config.ExportDir, format)
-			if err := stats.Save(filePath); err != nil {
-				log.Printf("Warning: failed to save stats for format %s: %v", format, err)
+		for _, gamesToWin := range gamesToWinModes {
+			facetKey := getFacetKey(format, gamesToWin)
+			
+			// Save stats for this facet
+			if stats, ok := s.stats[facetKey]; ok {
+				filePath := getStatsFilePath(s.config.ExportDir, format, gamesToWin)
+				if err := stats.Save(filePath); err != nil {
+					log.Printf("Warning: failed to save stats for %s: %v", facetKey, err)
+				}
 			}
-		}
-		
-		// Save playtime stats for this format
-		if playtimeStats, ok := s.playtimeStats[format]; ok {
-			filePath := getPlaytimeStatsFilePath(s.config.ExportDir, format)
-			if err := playtimeStats.Save(filePath); err != nil {
-				log.Printf("Warning: failed to save playtime stats for format %s: %v", format, err)
+
+			// Save playtime stats for this facet
+			if playtimeStats, ok := s.playtimeStats[facetKey]; ok {
+				filePath := getPlaytimeStatsFilePath(s.config.ExportDir, format, gamesToWin)
+				if err := playtimeStats.Save(filePath); err != nil {
+					log.Printf("Warning: failed to save playtime stats for %s: %v", facetKey, err)
+				}
 			}
 		}
 	}
@@ -392,13 +408,20 @@ func (s *Scraper) AddGame(game Game) error {
 	if format == "" {
 		format = "premier"
 	}
-	
-	// Get the stats for this format
-	stats, ok := s.stats[format]
-	if !ok {
-		return fmt.Errorf("unknown format: %s", format)
+
+	// Get gamesToWin mode, default to "bestOfOne" if empty
+	gamesToWin := game.GamesToWinMode
+	if gamesToWin == "" {
+		gamesToWin = "bestOfOne"
 	}
-	
+
+	// Get the stats for this format and gamesToWin combination
+	facetKey := getFacetKey(format, gamesToWin)
+	stats, ok := s.stats[facetKey]
+	if !ok {
+		return fmt.Errorf("unknown facet: %s", facetKey)
+	}
+
 	return stats.accumulate(game, 1)
 }
 
@@ -408,13 +431,20 @@ func (s *Scraper) AddPlaytime(game Game, minutes int) error {
 	if format == "" {
 		format = "premier"
 	}
-	
-	// Get the playtime stats for this format
-	playtimeStats, ok := s.playtimeStats[format]
-	if !ok {
-		return fmt.Errorf("unknown format: %s", format)
+
+	// Get gamesToWin mode, default to "bestOfOne" if empty
+	gamesToWin := game.GamesToWinMode
+	if gamesToWin == "" {
+		gamesToWin = "bestOfOne"
 	}
-	
+
+	// Get the playtime stats for this format and gamesToWin combination
+	facetKey := getFacetKey(format, gamesToWin)
+	playtimeStats, ok := s.playtimeStats[facetKey]
+	if !ok {
+		return fmt.Errorf("unknown facet: %s", facetKey)
+	}
+
 	return playtimeStats.accumulate(game, minutes)
 }
 
