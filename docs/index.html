@@ -330,7 +330,7 @@
             font-size: 24px;
             font-weight: 700;
             color: #d4af37;
-            width: 50px;
+            width: 30px;
             text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
         }
 
@@ -580,22 +580,9 @@
         let minGamesThreshold = 30;
         let currentDataSource = 'games'; // 'games' or 'playtime'
         let currentFormat = 'premier'; // 'premier', 'open' or 'nextSetPreview'
-        let cachedStats = {
-            games_premier: null,
-            playtime_premier: null,
-            games_open: null,
-            playtime_open: null,
-            games_nextSetPreview: null,
-            playtime_nextSetPreview: null
-        };
-        const _dailyTotalCache = {
-            games_premier: {},
-            playtime_premier: {},
-            games_open: {},
-            playtime_open: {},
-            games_nextSetPreview: {},
-            playtime_nextSetPreview: {},
-        };
+        let currentWinMode = 'bestOfOne' // 'bestOfOne' or 'bestOfThree'
+        let cachedStats = {};
+        const _dailyTotalCache = {};
         const ghRoot = 'https://raw.githubusercontent.com/Ravarix/karameta/refs/heads/main/';
 
         const alignments = ["Heroism", "Villainy"];
@@ -612,15 +599,17 @@
 
         // Helper to cache daily totals since we need them often
         function getTotalGamesForDate(date) {
-            if (_dailyTotalCache[`${currentDataSource}_${currentFormat}`][date] !== undefined) {
-                return _dailyTotalCache[`${currentDataSource}_${currentFormat}`][date];
+            const statsKey = `${currentDataSource}_${currentFormat}_${currentWinMode}`;
+            if (_dailyTotalCache[statsKey] && _dailyTotalCache[statsKey][date] !== undefined) {
+                return _dailyTotalCache[statsKey][date];
             }
 
             let total = 0;
             for (const stats of Object.values(statsData.stats)) {
                 total += (stats.dailyCounts[date] || 0);
             }
-            _dailyTotalCache[`${currentDataSource}_${currentFormat}`][date] = total;
+            if (!_dailyTotalCache[statsKey]) _dailyTotalCache[statsKey] = {};
+            _dailyTotalCache[statsKey][date] = total;
             return total;
         }
 
@@ -755,7 +744,7 @@
         }
 
         async function loadStats() {
-            const fileName = currentDataSource === 'games' ? `stats_${currentFormat}.json` : `playtime_stats_${currentFormat}.json`;
+            const fileName = currentDataSource === 'games' ? `stats_${currentFormat}_${currentWinMode}.json` : `playtime_stats_${currentFormat}_${currentWinMode}.json`;
             const statsKey = `${currentDataSource}_${currentFormat}`;
 
             if (cachedStats[statsKey]) {
