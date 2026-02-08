@@ -1,6 +1,26 @@
 {
-  "timestamp": "2026-02-07T19:25:39.109081754-08:00",
+  "timestamp": "2026-02-07T19:26:40.159749237-08:00",
   "games": {
+    "017edaf1-0f3b-4bdf-a38a-bb8c13f69774": {
+      "game": {
+        "id": "017edaf1-0f3b-4bdf-a38a-bb8c13f69774",
+        "player1Leader": {
+          "id": "JTL_016"
+        },
+        "player1Base": {
+          "id": "JTL_026"
+        },
+        "player2Leader": {
+          "id": "SOR_017"
+        },
+        "player2Base": {
+          "id": "SHD_023"
+        },
+        "format": "premier",
+        "gamesToWinMode": "bestOfOne"
+      },
+      "startTime": "2026-02-07T19:26:40.159749237-08:00"
+    },
     "01c3a60e-8f7e-47f8-b4ca-26ad068eb298": {
       "game": {
         "id": "01c3a60e-8f7e-47f8-b4ca-26ad068eb298",
@@ -20,26 +40,6 @@
         "gamesToWinMode": "bestOfOne"
       },
       "startTime": "2026-02-07T19:22:41.338351992-08:00"
-    },
-    "087890e9-5e2c-4de4-ae15-b851fc699ad9": {
-      "game": {
-        "id": "087890e9-5e2c-4de4-ae15-b851fc699ad9",
-        "player1Leader": {
-          "id": "TWI_007"
-        },
-        "player1Base": {
-          "id": "TWI_022"
-        },
-        "player2Leader": {
-          "id": "SHD_002"
-        },
-        "player2Base": {
-          "id": "JTL_024"
-        },
-        "format": "premier",
-        "gamesToWinMode": "bestOfOne"
-      },
-      "startTime": "2026-02-07T19:21:38.18592805-08:00"
     },
     "0a1d1085-6d6b-442c-95bd-7d41d2e24f66": {
       "game": {
@@ -121,25 +121,25 @@
       },
       "startTime": "2026-02-07T19:20:43.423701473-08:00"
     },
-    "24c06320-88a8-4862-bcf2-8e9f643ca6ef": {
+    "1e7e4a6a-c64c-416b-9e5b-4d6fd029a5cd": {
       "game": {
-        "id": "24c06320-88a8-4862-bcf2-8e9f643ca6ef",
+        "id": "1e7e4a6a-c64c-416b-9e5b-4d6fd029a5cd",
         "player1Leader": {
-          "id": "JTL_009"
+          "id": "SEC_007"
         },
         "player1Base": {
-          "id": "JTL_024"
+          "id": "LOF_020"
         },
         "player2Leader": {
-          "id": "SHD_010"
+          "id": "SEC_007"
         },
         "player2Base": {
-          "id": "SOR_022"
+          "id": "LOF_021"
         },
-        "format": "premier",
+        "format": "nextSetPreview",
         "gamesToWinMode": "bestOfOne"
       },
-      "startTime": "2026-02-07T19:21:38.18592805-08:00"
+      "startTime": "2026-02-07T19:26:40.159749237-08:00"
     },
     "26a299eb-a883-45b1-8046-60365d9e0349": {
       "game": {
@@ -240,6 +240,26 @@
         "gamesToWinMode": "bestOfOne"
       },
       "startTime": "2026-02-07T19:24:34.490793965-08:00"
+    },
+    "3747baac-f736-4ac0-bc57-050e1a8efa58": {
+      "game": {
+        "id": "3747baac-f736-4ac0-bc57-050e1a8efa58",
+        "player1Leader": {
+          "id": "SHD_010"
+        },
+        "player1Base": {
+          "id": "SOR_022"
+        },
+        "player2Leader": {
+          "id": "TWI_004"
+        },
+        "player2Base": {
+          "id": "JTL_024"
+        },
+        "format": "premier",
+        "gamesToWinMode": "bestOfOne"
+      },
+      "startTime": "2026-02-07T19:26:40.159749237-08:00"
     },
     "3afe8f24-24cb-46ef-a3ac-54c84f5a6215": {
       "game": {
@@ -381,26 +401,6 @@
       },
       "startTime": "2026-02-07T19:25:39.109081754-08:00"
     },
-    "5baa2f8e-ed5c-4099-824d-5682e4531cf4": {
-      "game": {
-        "id": "5baa2f8e-ed5c-4099-824d-5682e4531cf4",
-        "player1Leader": {
-          "id": "JTL_002"
-        },
-        "player1Base": {
-          "id": "JTL_024"
-        },
-        "player2Leader": {
-          "id": "SHD_001"
-        },
-        "player2Base": {
-          "id": "SOR_029"
-        },
-        "format": "premier",
-        "gamesToWinMode": "bestOfOne"
-      },
-      "startTime": "2026-02-07T19:22:41.338351992-08:00"
-    },
     "5f26a044-a1a7-4f91-a057-a83901b1fb34": {
       "game": {
         "id": "5f26a044-a1a7-4f91-a057-a83901b1fb34",
@@ -480,6 +480,26 @@
         "gamesToWinMode": "bestOfOne"
       },
       "startTime": "2026-02-07T19:23:52.130404735-08:00"
+    },
+    "6684b02f-601f-4ca9-a248-aff57cb93c6b": {
+      "game": {
+        "id": "6684b02f-601f-4ca9-a248-aff57cb93c6b",
+        "player1Leader": {
+          "id": "SOR_003"
+        },
+        "player1Base": {
+          "id": "SOR_024"
+        },
+        "player2Leader": {
+          "id": "LOF_009"
+        },
+        "player2Base": {
+          "id": "LOF_020"
+        },
+        "format": "open",
+        "gamesToWinMode": "bestOfOne"
+      },
+      "startTime": "2026-02-07T19:26:40.159749237-08:00"
     },
     "7160866a-0bdf-428d-8248-6b9954f6893f": {
       "game": {
@@ -561,6 +581,26 @@
       },
       "startTime": "2026-02-07T19:22:41.338351992-08:00"
     },
+    "76d3a746-0767-44f1-a974-d17ab603fca8": {
+      "game": {
+        "id": "76d3a746-0767-44f1-a974-d17ab603fca8",
+        "player1Leader": {
+          "id": "LAW_010"
+        },
+        "player1Base": {
+          "id": "LAW_020"
+        },
+        "player2Leader": {
+          "id": "SEC_017"
+        },
+        "player2Base": {
+          "id": "SEC_023"
+        },
+        "format": "nextSetPreview",
+        "gamesToWinMode": "bestOfOne"
+      },
+      "startTime": "2026-02-07T19:26:40.159749237-08:00"
+    },
     "7925b03a-d0cb-4c65-8b8c-086557016696": {
       "game": {
         "id": "7925b03a-d0cb-4c65-8b8c-086557016696",
@@ -600,6 +640,46 @@
         "gamesToWinMode": "bestOfOne"
       },
       "startTime": "2026-02-07T19:25:39.109081754-08:00"
+    },
+    "7ff7739b-689c-4dbb-bddf-af97970434d2": {
+      "game": {
+        "id": "7ff7739b-689c-4dbb-bddf-af97970434d2",
+        "player1Leader": {
+          "id": "LOF_001"
+        },
+        "player1Base": {
+          "id": "LAW_026"
+        },
+        "player2Leader": {
+          "id": "LAW_001"
+        },
+        "player2Base": {
+          "id": "SEC_026"
+        },
+        "format": "nextSetPreview",
+        "gamesToWinMode": "bestOfOne"
+      },
+      "startTime": "2026-02-07T19:26:40.159749237-08:00"
+    },
+    "8026ed0e-8d89-46d1-ba3e-09b680bec46d": {
+      "game": {
+        "id": "8026ed0e-8d89-46d1-ba3e-09b680bec46d",
+        "player1Leader": {
+          "id": "JTL_005"
+        },
+        "player1Base": {
+          "id": "JTL_027"
+        },
+        "player2Leader": {
+          "id": "LAW_011"
+        },
+        "player2Base": {
+          "id": "JTL_019"
+        },
+        "format": "nextSetPreview",
+        "gamesToWinMode": "bestOfOne"
+      },
+      "startTime": "2026-02-07T19:26:40.159749237-08:00"
     },
     "83c3f666-c7af-43fc-8272-455bb6f36410": {
       "game": {
@@ -661,6 +741,46 @@
       },
       "startTime": "2026-02-07T19:25:39.109081754-08:00"
     },
+    "92b5a437-1384-4eb1-a0c7-6b1962a4cc45": {
+      "game": {
+        "id": "92b5a437-1384-4eb1-a0c7-6b1962a4cc45",
+        "player1Leader": {
+          "id": "JTL_002"
+        },
+        "player1Base": {
+          "id": "JTL_024"
+        },
+        "player2Leader": {
+          "id": "SHD_002"
+        },
+        "player2Base": {
+          "id": "JTL_024"
+        },
+        "format": "premier",
+        "gamesToWinMode": "bestOfOne"
+      },
+      "startTime": "2026-02-07T19:26:40.159749237-08:00"
+    },
+    "95f2c144-c275-4528-9ed1-9a926f21e47a": {
+      "game": {
+        "id": "95f2c144-c275-4528-9ed1-9a926f21e47a",
+        "player1Leader": {
+          "id": "TWI_007"
+        },
+        "player1Base": {
+          "id": "TWI_022"
+        },
+        "player2Leader": {
+          "id": "LOF_016"
+        },
+        "player2Base": {
+          "id": "LOF_021"
+        },
+        "format": "premier",
+        "gamesToWinMode": "bestOfOne"
+      },
+      "startTime": "2026-02-07T19:26:40.159749237-08:00"
+    },
     "993a166a-c156-4e00-9957-7d3f903817a6": {
       "game": {
         "id": "993a166a-c156-4e00-9957-7d3f903817a6",
@@ -721,17 +841,57 @@
       },
       "startTime": "2026-02-07T19:24:34.490793965-08:00"
     },
-    "accce316-508c-49d3-90ce-942de0196f65": {
+    "a6a84832-58b6-41f7-8dba-27f10a177adb": {
       "game": {
-        "id": "accce316-508c-49d3-90ce-942de0196f65",
+        "id": "a6a84832-58b6-41f7-8dba-27f10a177adb",
         "player1Leader": {
-          "id": "LAW_010"
+          "id": "JTL_009"
         },
         "player1Base": {
-          "id": "LAW_020"
+          "id": "JTL_024"
         },
         "player2Leader": {
-          "id": "JTL_009"
+          "id": "SEC_017"
+        },
+        "player2Base": {
+          "id": "SOR_025"
+        },
+        "format": "premier",
+        "gamesToWinMode": "bestOfOne"
+      },
+      "startTime": "2026-02-07T19:26:40.159749237-08:00"
+    },
+    "aa7702fb-d04a-49c2-b159-7c468df647f9": {
+      "game": {
+        "id": "aa7702fb-d04a-49c2-b159-7c468df647f9",
+        "player1Leader": {
+          "id": "SHD_013"
+        },
+        "player1Base": {
+          "id": "JTL_024"
+        },
+        "player2Leader": {
+          "id": "SHD_013"
+        },
+        "player2Base": {
+          "id": "SOR_022"
+        },
+        "format": "premier",
+        "gamesToWinMode": "bestOfOne"
+      },
+      "startTime": "2026-02-07T19:26:40.159749237-08:00"
+    },
+    "ac78b8ca-3938-4a04-bbb3-8cbba747a2db": {
+      "game": {
+        "id": "ac78b8ca-3938-4a04-bbb3-8cbba747a2db",
+        "player1Leader": {
+          "id": "LOF_009"
+        },
+        "player1Base": {
+          "id": "LOF_020"
+        },
+        "player2Leader": {
+          "id": "LAW_008"
         },
         "player2Base": {
           "id": "SEC_025"
@@ -739,7 +899,7 @@
         "format": "nextSetPreview",
         "gamesToWinMode": "bestOfOne"
       },
-      "startTime": "2026-02-07T19:22:41.338351992-08:00"
+      "startTime": "2026-02-07T19:26:40.159749237-08:00"
     },
     "ad793d08-216b-4d04-8933-76987343bdcd": {
       "game": {
@@ -801,26 +961,6 @@
       },
       "startTime": "2026-02-07T19:22:41.338351992-08:00"
     },
-    "ba3e625d-cee2-4676-8fa3-93a8a8d375fb": {
-      "game": {
-        "id": "ba3e625d-cee2-4676-8fa3-93a8a8d375fb",
-        "player1Leader": {
-          "id": "SEC_010"
-        },
-        "player1Base": {
-          "id": "JTL_021"
-        },
-        "player2Leader": {
-          "id": "SEC_017"
-        },
-        "player2Base": {
-          "id": "SEC_023"
-        },
-        "format": "nextSetPreview",
-        "gamesToWinMode": "bestOfOne"
-      },
-      "startTime": "2026-02-07T19:20:43.423701473-08:00"
-    },
     "bb3fc9a3-1868-463a-bd68-14aedcf50a00": {
       "game": {
         "id": "bb3fc9a3-1868-463a-bd68-14aedcf50a00",
@@ -840,26 +980,6 @@
         "gamesToWinMode": "bestOfOne"
       },
       "startTime": "2026-02-07T19:19:33.642707253-08:00"
-    },
-    "c24ea3ab-d447-4bdc-9234-2a361da43fdb": {
-      "game": {
-        "id": "c24ea3ab-d447-4bdc-9234-2a361da43fdb",
-        "player1Leader": {
-          "id": "JTL_009"
-        },
-        "player1Base": {
-          "id": "JTL_030"
-        },
-        "player2Leader": {
-          "id": "SEC_007"
-        },
-        "player2Base": {
-          "id": "LOF_021"
-        },
-        "format": "nextSetPreview",
-        "gamesToWinMode": "bestOfOne"
-      },
-      "startTime": "2026-02-07T19:21:38.18592805-08:00"
     },
     "c26d76ae-9d03-47c8-a20b-8b5a5b9ddf5c": {
       "game": {
@@ -920,26 +1040,6 @@
         "gamesToWinMode": "bestOfOne"
       },
       "startTime": "2026-02-07T19:22:41.338351992-08:00"
-    },
-    "cbfb38d3-aeb0-43ef-b176-5f428503a267": {
-      "game": {
-        "id": "cbfb38d3-aeb0-43ef-b176-5f428503a267",
-        "player1Leader": {
-          "id": "LAW_011"
-        },
-        "player1Base": {
-          "id": "JTL_024"
-        },
-        "player2Leader": {
-          "id": "LAW_005"
-        },
-        "player2Base": {
-          "id": "JTL_026"
-        },
-        "format": "nextSetPreview",
-        "gamesToWinMode": "bestOfOne"
-      },
-      "startTime": "2026-02-07T19:15:38.875256501-08:00"
     },
     "cf86ac04-9cda-4cd5-84b6-3556ce0132c0": {
       "game": {
@@ -1320,46 +1420,6 @@
         "gamesToWinMode": "bestOfThree"
       },
       "startTime": "2026-02-07T19:13:39.401176484-08:00"
-    },
-    "f638ed08-6042-4e2d-b332-dbf2ab92cd45": {
-      "game": {
-        "id": "f638ed08-6042-4e2d-b332-dbf2ab92cd45",
-        "player1Leader": {
-          "id": "LOF_009"
-        },
-        "player1Base": {
-          "id": "LOF_020"
-        },
-        "player2Leader": {
-          "id": "JTL_005"
-        },
-        "player2Base": {
-          "id": "JTL_027"
-        },
-        "format": "nextSetPreview",
-        "gamesToWinMode": "bestOfOne"
-      },
-      "startTime": "2026-02-07T19:16:39.468982874-08:00"
-    },
-    "f685920b-0008-4daa-9fa1-a958fb2deeb4": {
-      "game": {
-        "id": "f685920b-0008-4daa-9fa1-a958fb2deeb4",
-        "player1Leader": {
-          "id": "JTL_005"
-        },
-        "player1Base": {
-          "id": "TWI_026"
-        },
-        "player2Leader": {
-          "id": "TWI_004"
-        },
-        "player2Base": {
-          "id": "JTL_024"
-        },
-        "format": "premier",
-        "gamesToWinMode": "bestOfOne"
-      },
-      "startTime": "2026-02-07T19:20:43.423701473-08:00"
     },
     "fb1e01fd-d7bc-4ca4-a123-5f45d2a924db": {
       "game": {
