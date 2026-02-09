@@ -784,6 +784,9 @@
             // Update labels
             document.getElementById('lblTotalGames').textContent = source === 'games' ? 'Games in Range' : 'Playtime in Range';
 
+            // Update minGamesThreshold based on data source
+            minGamesThreshold = source === 'games' ? 30 : 600;
+
             // Reload and update
             const content = document.getElementById('content');
             content.innerHTML = '<div class="loading">Loading ' + source + ' statistics...</div>';
@@ -913,23 +916,22 @@
                         continue;
                     }
 
-                    let delta = 0;
-                    if (trendCalculationMode === 'absolute') {
-                        delta = endRate - startRate;
-                    } else {
-                        // Relative Change
-                        if (startRate > 0) {
-                            delta = ((endRate - startRate) / startRate) * 100;
-                        } else if (endRate > 0) {
-                            // Infinite growth technically, treat as max sort magnitude but display specially?
-                            // For simplicity let's cap it or treat it as 100% or just high number
-                            delta = 100;
-                        }
+                    let absDelta = endRate - startRate;
+                    let relDelta = 0;
+                    // Relative Change
+                    if (startRate > 0) {
+                        relDelta = ((endRate - startRate) / startRate) * 100;
+                    } else if (endRate > 0) {
+                        // Infinite growth technically, treat as max sort magnitude but display specially?
+                        // For simplicity let's cap it or treat it as 100% or just high number
+                        relDelta = 100;
                     }
 
                     trendList.push({
                         name: comboName,
-                        delta: delta,
+                        delta: trendCalculationMode === 'absolute' ? absDelta : relDelta,
+                        absDelta: absDelta,
+                        relDelta: relDelta,
                         endRate: endRate,
                         startRate: startRate
                     });
@@ -1170,7 +1172,7 @@
                                 <h2 class="section-title" style="margin-bottom: 0; border: none;">Hot & Cold</h2>
                                 <div style="display: flex; gap: 12px; align-items: center;">
                                     <div style="display: flex; align-items: center; gap: 8px; color: #a8b2d1; font-size: 14px;">
-                                        <label for="minGamesInput">Min Games:</label>
+                                        <label for="minGamesInput">${currentDataSource === 'games' ? 'Min Games:' : 'Min Minutes:'}</label>
                                         <input type="number" id="minGamesInput" value="${minGamesThreshold}" min="0" 
                                             style="width: 70px; background: #252a3d; border: 1px solid rgba(212, 175, 55, 0.3); color: #d4af37; padding: 6px 10px; border-radius: 6px; font-weight: 600;"
                                             onchange="updateMinGames(this.value)">
@@ -1208,9 +1210,14 @@
                 const container = document.getElementById(containerId);
                 container.innerHTML = items.slice(0, 20).map((item, i) => {
                     const [leader, base] = item.name.split('/');
-                    const isPositive = item.delta > 0;
+                    const delta = trendCalculationMode === 'absolute' ? item.absDelta : item.relDelta;
+                    const otherDelta = trendCalculationMode === 'absolute' ? item.relDelta : item.absDelta;
+                    const isPositive = delta > 0;
                     const sign = isPositive ? '+' : '';
-                    const deltaClass = isPositive ? 'trend-positive' : (item.delta < 0 ? 'trend-negative' : 'trend-neutral');
+                    const prefix = trendCalculationMode === 'absolute'
+                        ? (isPositive ? 'x' : '-x')
+                        : (isPositive ? '+' : '-');
+                    const deltaClass = isPositive ? 'trend-positive' : (delta < 0 ? 'trend-negative' : 'trend-neutral');
                     const escapedName = item.name.replace(/'/g, "\\'");
 
                     return `
@@ -1219,11 +1226,11 @@
                         <div class="combo-info">
                             <div class="combo-name">${leaderNames[leader]}<br>${baseNames[base]}</div>
                             <div class="combo-details">
-                            Start: ${item.startRate.toFixed(1)}% → End: ${item.endRate.toFixed(1)}%
+                            Start: ${item.startRate.toFixed(1)}% → End: ${item.endRate.toFixed(1)}% (<span class="${deltaClass}">${prefix}${Math.abs(otherDelta).toFixed(1)}%</span>)
                             </div>
                         </div>
                         <div class="combo-stats">
-                            <div class="trend-value ${deltaClass}">${sign}${item.delta.toFixed(2)}%</div>
+                            <div class="trend-value ${deltaClass}">${sign}${delta.toFixed(2)}%</div>
                             <div class="combo-percentage" style="font-size: 12px;">Change</div>
                         </div>
                     </div>
