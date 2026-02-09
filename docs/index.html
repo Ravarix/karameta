@@ -648,34 +648,25 @@
         }
 
         function getAspectsByName(leaderName, baseName) {
-            return getAspects(leaderNameToId[leaderName.trim()], baseNameToId[baseName.trim()]);
+            return getUniqueAspects(leaderNameToId[leaderName.trim()], baseNameToId[baseName.trim()]);
+        }
+
+        function getUniqueAspects(leader, base) {
+            const aspects = new Set();
+            leaderAspects[leader]?.forEach(a => aspects.add(a));
+            baseAspects[base]?.forEach(a => aspects.add(a));
+            return aspects;
         }
 
         function getAspects(leader, base) {
-            const aspects = new Set();
-
-            // Add Leader Aspects
-            if (leaderAspects[leader]) {
-                leaderAspects[leader].forEach(a => aspects.add(a));
-            }
-
-            // Add Base Aspect
-            if (baseAspects[base]) {
-                baseAspects[base].forEach(a => aspects.add(a));
-            }
+            const aspects = [];
+            leaderAspects[leader]?.forEach(a => aspects.push(a));
+            baseAspects[base]?.forEach(a => aspects.push(a));
             return aspects;
         }
 
         function getOrderedAspects(leader, base) {
-            const aspects = [];
-            if (leaderAspects[leader]) {
-                leaderAspects[leader].forEach(a => aspects.push(a));
-            }
-
-            // Add Base Aspect
-            if (baseAspects[base]) {
-                baseAspects[base].forEach(a => aspects.push(a));
-            }
+            const aspects = getAspects(leader, base);
             const ordered = [];
             const alignment = [];
 
@@ -1068,7 +1059,7 @@
                     borderColor: color,
                     backgroundColor: color,
                     pointBackgroundColor: color,
-                    pointRadius: 3,
+                    pointRadius: 2,
                 };
             });
 
@@ -1288,7 +1279,7 @@
                     const isPositive = delta > 0;
                     const sign = isPositive ? '+' : '';
                     const prefix = trendCalculationMode === 'absolute'
-                        ? (isPositive ? 'x' : '-x')
+                        ? (isPositive ? '&#9650;' : '&#9660;')
                         : (isPositive ? '+' : '-');
                     const deltaClass = isPositive ? 'trend-positive' : (delta < 0 ? 'trend-negative' : 'trend-neutral');
                     const escapedName = item.name.replace(/'/g, "\\\\'");
@@ -1496,14 +1487,14 @@
             // Colors based on Base Aspect
             const colors = labels.map(baseName => {
                 const aspects = baseAspects[baseName];
-                return aspects ? ASPECT_COLORS[aspects[0]] : '#a4b0be';
+                return aspects?.length > 0 ? ASPECT_COLORS[aspects[0]] : '#a4b0be';
             });
 
             let aspectDistribution = {};
 
             for (const [comboName, count] of Object.entries(data.combinations)) {
                 const [leader, base] = comboName.split('/');
-                const aspects = getAspects(leader, base);
+                const aspects = getUniqueAspects(leader, base);
 
                 for (const aspect of aspects) {
                     if (!aspectDistribution[aspect]) aspectDistribution[aspect] = 0;
