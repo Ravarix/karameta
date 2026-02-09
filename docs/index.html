@@ -316,7 +316,24 @@
             justify-content: space-between;
             align-items: center;
             transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
             border: 2px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .combo-item.has-aspect-border {
+            padding-left: 30px;
+            border-left: none;
+        }
+
+        .combo-item.has-aspect-border::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            border-radius: 12px 0 0 12px;
         }
 
         .combo-item:hover {
@@ -647,6 +664,62 @@
                 baseAspects[base].forEach(a => aspects.add(a));
             }
             return aspects;
+        }
+
+        function getOrderedAspects(leader, base) {
+            const aspects = [];
+            if (leaderAspects[leader]) {
+                leaderAspects[leader].forEach(a => aspects.push(a));
+            }
+
+            // Add Base Aspect
+            if (baseAspects[base]) {
+                baseAspects[base].forEach(a => aspects.push(a));
+            }
+            const ordered = [];
+            const alignment = [];
+
+            // Separate aspects and alignments
+            aspects.forEach(a => {
+                if (alignments.includes(a)) {
+                    alignment.push(a);
+                } else {
+                    ordered.push(a);
+                }
+            });
+
+            // Sort non-alignment aspects alphabetically for consistency
+            ordered.sort();
+
+            // Add alignment last
+            return [...ordered, ...alignment];
+        }
+
+        function getAspectBorderGradient(leader, base) {
+            const aspectsOrdered = getOrderedAspects(leader, base);
+
+            if (aspectsOrdered.length === 0) {
+                return 'rgba(212, 175, 55, 0.2)';
+            }
+
+            if (aspectsOrdered.length === 1) {
+                return ASPECT_COLORS[aspectsOrdered[0]] || 'rgba(212, 175, 55, 0.2)';
+            }
+
+            // Create segmented gradient
+            const segmentSize = 100 / aspectsOrdered.length;
+            const gradientStops = [];
+
+            aspectsOrdered.forEach((aspect, index) => {
+                const color = ASPECT_COLORS[aspect] || '#808080';
+                const start = index * segmentSize;
+                const end = (index + 1) * segmentSize;
+
+                gradientStops.push(`${color} ${start}%`);
+                gradientStops.push(`${color} ${end}%`);
+            });
+
+            return `linear-gradient(to bottom, ${gradientStops.join(', ')})`;
         }
 
         function reverseComboNameLookup(comboName) {
@@ -1218,10 +1291,17 @@
                         ? (isPositive ? 'x' : '-x')
                         : (isPositive ? '+' : '-');
                     const deltaClass = isPositive ? 'trend-positive' : (delta < 0 ? 'trend-negative' : 'trend-neutral');
-                    const escapedName = item.name.replace(/'/g, "\\'");
+                    const escapedName = item.name.replace(/'/g, "\\\\'");
+                    const comboColor = getComboColor(leader, base);
+                    const aspectId = `aspect-${containerId}-${i}`;
 
                     return `
-                    <div class="combo-item" style="cursor: pointer;" onclick="addComboToTrend('${escapedName}')" title="Click to add to trends">
+                    <style>
+                        #${aspectId}.has-aspect-border::before {
+                            background: ${comboColor};
+                        }
+                    </style>
+                    <div id="${aspectId}" class="combo-item has-aspect-border" style="cursor: pointer;" onclick="addComboToTrend('${escapedName}')" title="Click to add to trends">
                         <div class="combo-rank" style="font-size: 18px;">${i + 1}</div>
                         <div class="combo-info">
                             <div class="combo-name">${leaderNames[leader]}<br>${baseNames[base]}</div>
