@@ -209,7 +209,7 @@ func NewScraper(config Config) (*Scraper, error) {
 	for _, format := range formats {
 		for _, gamesToWin := range gamesToWinModes {
 			facetKey := getFacetKey(format, gamesToWin)
-			
+
 			statsPath := getStatsFilePath(config.ExportDir, format, gamesToWin)
 			stats, err := LoadStats(statsPath)
 			if err != nil {
@@ -326,7 +326,7 @@ func (s *Scraper) Scrape(ctx context.Context) error {
 
 	for err := range errMap {
 		// Log parsing errors as github warnings
-		log.Printf("::warning::%v", err)
+		fmt.Printf("::warning::%v", err)
 	}
 
 	log.Printf("Scrape complete: %d total games, %d new games, %d finished games", len(apiResp.OngoingGames), newGames, finishedCount)
@@ -341,7 +341,7 @@ func (s *Scraper) Save() {
 	for _, format := range formats {
 		for _, gamesToWin := range gamesToWinModes {
 			facetKey := getFacetKey(format, gamesToWin)
-			
+
 			// Save stats for this facet
 			if stats, ok := s.stats[facetKey]; ok {
 				filePath := getStatsFilePath(s.config.ExportDir, format, gamesToWin)
