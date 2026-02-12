@@ -1,0 +1,23 @@
+{
+    "name": "karameta-scraper",
+    "version": "1.0.0",
+    "description": "Game statistics scraper for Cloudflare Workers",
+    "main": "src/index.ts",
+    "scripts": {
+        "build": "tsc",
+        "dev": "wrangler dev",
+        "deploy": "wrangler deploy",
+        "test": "tsc --noEmit"
+    },
+    "keywords": [
+        "cloudflare",
+        "workers",
+        "scraper"
+    ],
+    "author": "",
+    "license": "MIT",
+    "devDependencies": {
+        "@cloudflare/workers-types": "^4.20240620.0",
+        "typescript": "^5.5.3"
+    }
+}

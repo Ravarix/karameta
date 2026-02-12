@@ -1,0 +1,14 @@
+name = "karameta-scraper"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# Environment variables
+[vars]
+API_URL = "https://api.karabast.net/api/ongoing-games"
+GITHUB_OWNER = "Ravarix"
+GITHUB_REPO = "karameta"
+GITHUB_BRANCH = "main"
+
+# Cron trigger - runs every minute
+[triggers]
+crons = ["* * * * *"]
