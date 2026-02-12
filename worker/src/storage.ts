@@ -30,6 +30,7 @@ export class GitHubStorage {
     }
 
     async loadStats(filename: string): Promise<GameStats> {
+        // Always use Blob API for stats files (handles any size, more consistent)
         const url = `${this.baseUrl}/contents/data/${filename}?ref=${this.branch}`;
         const response = await fetch(url, {
             headers: {
@@ -40,23 +41,58 @@ export class GitHubStorage {
         });
 
         if (!response.ok) {
-            // Consume response body to prevent deadlock warning
             await response.text();
             if (response.status === 404) {
-                // File doesn't exist yet, return empty stats
                 console.log(`File ${filename} not found, creating new`);
                 return { stats: {} };
             }
-            // Don't silently return empty stats - this would wipe historical data!
             throw new Error(`GitHub API error loading ${filename}: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json() as GitHubFileResponse;
-        const content = atob(data.content.replace(/\n/g, '')); // Base64 decode
-        return JSON.parse(content) as GameStats;
+
+        if (data.content.length > 0) {
+            return JSON.parse(atob(data.content.replace(/\n/g, ''))) as GameStats;
+        }
+
+        if (!data.sha) {
+            throw new Error(`GitHub API returned no SHA for ${filename}`);
+        }
+
+        // Get content via Blob API
+        const content = await this.loadBlob(data.sha);
+
+        try {
+            return JSON.parse(content) as GameStats;
+        } catch (error) {
+            throw new Error(`Failed to parse JSON for ${filename}: ${error}. Content length: ${content.length}`);
+        }
+    }
+
+    /**
+     * Load a blob by SHA (used for all stats files)
+     */
+    private async loadBlob(sha: string): Promise<string> {
+        const url = `${this.baseUrl}/git/blobs/${sha}`;
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${this.token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Karameta-Scraper'
+            }
+        });
+
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`Failed to load blob ${sha}: ${response.status} ${error}`);
+        }
+
+        const data = await response.json() as { content: string; encoding: string; size: number };
+        return atob(data.content.replace(/\n/g, ''));
     }
 
     async loadOngoingGames(): Promise<OngoingGames> {
+        // ongoing_games.json should never be >1MB, use simple Contents API
         const url = `${this.baseUrl}/contents/data/ongoing_games.json?ref=${this.branch}`;
         const response = await fetch(url, {
             headers: {
@@ -67,7 +103,6 @@ export class GitHubStorage {
         });
 
         if (!response.ok) {
-            // Consume response body to prevent deadlock
             await response.text();
             if (response.status === 404) {
                 console.log('ongoing_games.json not found, creating new');
@@ -77,8 +112,18 @@ export class GitHubStorage {
         }
 
         const data = await response.json() as GitHubFileResponse;
+
+        if (!data.content) {
+            throw new Error(`GitHub API returned no content for ongoing_games.json`);
+        }
+
         const content = atob(data.content.replace(/\n/g, ''));
-        return JSON.parse(content) as OngoingGames;
+
+        try {
+            return JSON.parse(content) as OngoingGames;
+        } catch (error) {
+            throw new Error(`Failed to parse JSON for ongoing_games.json: ${error}`);
+        }
     }
 
     /**
