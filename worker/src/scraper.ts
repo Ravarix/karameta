@@ -136,6 +136,7 @@ export class Scraper {
         const formats = ['premier', 'open', 'nextSetPreview'];
         const gamesToWinModes = ['bestOfOne', 'bestOfThree'];
 
+        // Queue all file writes
         for (const format of formats) {
             for (const gamesToWin of gamesToWinModes) {
                 const facetKey = getFacetKey(format, gamesToWin);
@@ -157,6 +158,9 @@ export class Scraper {
         }
 
         await this.storage.saveOngoingGames(this.ongoingGames);
+
+        // Commit all changes in a single atomic commit
+        await this.storage.commitAll();
         console.log('Save complete');
     }
 

@@ -127,11 +127,13 @@ make logs
    - Fetches ongoing games from game API
    - Updates stats for new games
    - Tracks playtime for finished games
-   - Commits updated stats back to GitHub
+   - Commits all updated files to GitHub in a **single atomic commit**
 
 2. **Frontend** (unchanged):
    - Reads stats from `https://raw.githubusercontent.com/Ravarix/karameta/main/data/stats_*.json`
    - No changes needed!
+
+**Efficiency**: Uses GitHub Tree API to batch all file changes into one commit, creating clean git history with single "Update stats" commits instead of 15 individual commits per run.
 
 ## Data Files
 
