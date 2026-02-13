@@ -12,3 +12,8 @@ GITHUB_BRANCH = "main"
 # Cron trigger - runs every minute
 [triggers]
 crons = ["* * * * *"]
+
+[observability]
+[observability.logs]
+enabled = true
+invocation_logs = true
