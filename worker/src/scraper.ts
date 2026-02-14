@@ -40,23 +40,38 @@ export class Scraper {
         const formats = ['premier', 'open', 'nextSetPreview'];
         const gamesToWinModes = ['bestOfOne', 'bestOfThree'];
 
-        // Load all stats files
+        // Load all stats files in parallel
+        const loadPromises: Promise<any>[] = [];
+
         for (const format of formats) {
             for (const gamesToWin of gamesToWinModes) {
                 const facetKey = getFacetKey(format, gamesToWin);
 
-                const statsPath = getStatsFilePath(format, gamesToWin);
-                const stats = await this.storage.loadStats(statsPath);
-                this.stats.set(facetKey, stats);
+                // Queue stats loading
+                loadPromises.push(
+                    this.storage.loadStats(getStatsFilePath(format, gamesToWin))
+                        .then(stats => this.stats.set(facetKey, stats))
+                );
 
-                const playtimePath = getPlaytimeStatsFilePath(format, gamesToWin);
-                const playtimeStats = await this.storage.loadStats(playtimePath);
-                this.playtimeStats.set(facetKey, playtimeStats);
+                // Queue playtime stats loading
+                loadPromises.push(
+                    this.storage.loadStats(getPlaytimeStatsFilePath(format, gamesToWin))
+                        .then(playtimeStats => this.playtimeStats.set(facetKey, playtimeStats))
+                );
             }
         }
 
-        // Load ongoing games
-        this.ongoingGames = await this.storage.loadOngoingGames();
+        // Queue ongoing games loading
+        loadPromises.push(
+            this.storage.loadOngoingGames()
+                .then(ongoingGames => {
+                    this.ongoingGames = ongoingGames;
+                })
+        );
+
+        // Wait for all parallel loads to complete
+        await Promise.all(loadPromises);
+
         console.log(`Loaded ${Object.keys(this.ongoingGames.games).length} ongoing games`);
     }
 
@@ -145,19 +160,19 @@ export class Scraper {
                 const stats = this.stats.get(facetKey);
                 if (stats) {
                     const statsPath = getStatsFilePath(format, gamesToWin);
-                    await this.storage.saveStats(statsPath, stats);
+                    this.storage.saveStats(statsPath, stats);
                 }
 
                 // Save playtime stats
                 const playtimeStats = this.playtimeStats.get(facetKey);
                 if (playtimeStats) {
                     const playtimePath = getPlaytimeStatsFilePath(format, gamesToWin);
-                    await this.storage.saveStats(playtimePath, playtimeStats);
+                    this.storage.saveStats(playtimePath, playtimeStats);
                 }
             }
         }
 
-        await this.storage.saveOngoingGames(this.ongoingGames);
+        this.storage.saveOngoingGames(this.ongoingGames);
 
         // Commit all changes in a single atomic commit
         await this.storage.commitAll();

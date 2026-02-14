@@ -129,12 +129,12 @@ export class GitHubStorage {
     /**
      * Queue a file for writing (will be committed in batch)
      */
-    async saveStats(filename: string, stats: GameStats): Promise<void> {
+    async saveStats(filename: string, stats: GameStats) {
         const content = JSON.stringify(stats, null, 2);
         this.pendingWrites.set(filename, content);
     }
 
-    async saveOngoingGames(games: OngoingGames): Promise<void> {
+    async saveOngoingGames(games: OngoingGames) {
         const content = JSON.stringify(games, null, 2);
         this.pendingWrites.set('ongoing_games.json', content);
     }
@@ -263,7 +263,7 @@ export class GitHubStorage {
             }
 
             // Consume the success response
-            await updateRefResponse.text();
+            // await updateRefResponse.text();
 
             console.log(`Successfully committed ${this.pendingWrites.size} files`);
             this.pendingWrites.clear();
