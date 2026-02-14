@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-02-14T08:34:21.193Z",
+  "timestamp": "2026-02-14T08:35:21.318Z",
   "games": {
     "25317bec-d435-451e-a797-af7dac98ee23": {
       "game": {
@@ -60,39 +60,6 @@
           "id": "JTL_024",
           "count": 1,
           "internalName": "4028826022",
-          "cost": null
-        },
-        "format": "premier",
-        "gamesToWinMode": "bestOfOne"
-      },
-      "startTime": "2026-02-14T08:26:21.035Z"
-    },
-    "c3d17470-281d-48c8-a9f6-5fcb54cf910e": {
-      "game": {
-        "id": "c3d17470-281d-48c8-a9f6-5fcb54cf910e",
-        "isPrivate": false,
-        "player1Leader": {
-          "id": "SEC_001",
-          "count": 1,
-          "internalName": "1020365882",
-          "cost": 7
-        },
-        "player1Base": {
-          "id": "JTL_024",
-          "count": 1,
-          "internalName": "4028826022",
-          "cost": null
-        },
-        "player2Leader": {
-          "id": "TWI_018",
-          "count": 1,
-          "internalName": "2358113881",
-          "cost": 5
-        },
-        "player2Base": {
-          "id": "SOR_025",
-          "count": 1,
-          "internalName": "1393827469",
           "cost": null
         },
         "format": "premier",
@@ -1419,6 +1386,72 @@
         "gamesToWinMode": "bestOfOne"
       },
       "startTime": "2026-02-14T08:34:21.193Z"
+    },
+    "ac1a0714-de83-48eb-9100-3271dcb8c7fd": {
+      "game": {
+        "id": "ac1a0714-de83-48eb-9100-3271dcb8c7fd",
+        "isPrivate": false,
+        "player1Leader": {
+          "id": "SEC_010",
+          "count": 1,
+          "internalName": "0955276339",
+          "cost": 4
+        },
+        "player1Base": {
+          "id": "LAW_029",
+          "count": 1,
+          "internalName": "5020758299",
+          "cost": null
+        },
+        "player2Leader": {
+          "id": "JTL_009",
+          "count": 1,
+          "internalName": "9831674351",
+          "cost": 6
+        },
+        "player2Base": {
+          "id": "SEC_025",
+          "count": 1,
+          "internalName": "4642946597",
+          "cost": null
+        },
+        "format": "nextSetPreview",
+        "gamesToWinMode": "bestOfOne"
+      },
+      "startTime": "2026-02-14T08:35:21.318Z"
+    },
+    "0452dd9d-d2cc-4ef2-bc4b-7d4e45b4ad63": {
+      "game": {
+        "id": "0452dd9d-d2cc-4ef2-bc4b-7d4e45b4ad63",
+        "isPrivate": false,
+        "player1Leader": {
+          "id": "TWI_005",
+          "count": 1,
+          "internalName": "5683908835",
+          "cost": 7
+        },
+        "player1Base": {
+          "id": "JTL_031",
+          "count": 1,
+          "internalName": "1672815328",
+          "cost": null
+        },
+        "player2Leader": {
+          "id": "JTL_012",
+          "count": 1,
+          "internalName": "0766281795",
+          "cost": 6
+        },
+        "player2Base": {
+          "id": "SOR_024",
+          "count": 1,
+          "internalName": "2055904747",
+          "cost": null
+        },
+        "format": "premier",
+        "gamesToWinMode": "bestOfOne"
+      },
+      "startTime": "2026-02-14T08:35:21.318Z"
     }
   }
 }
